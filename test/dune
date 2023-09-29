@@ -1,0 +1,3 @@
+(executable
+ (name main)
+ (libraries chess ounit2))
