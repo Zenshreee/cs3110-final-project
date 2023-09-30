@@ -1,2 +1,0 @@
-open Board
-open Pieces
