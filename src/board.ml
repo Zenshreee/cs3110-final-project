@@ -123,9 +123,9 @@ let board =
   |]
 
 let print_board =
-  for i = 7 downto 0 do
+  for i = 0 to 7 do
     print_string "\n________________________________\n";
-    for j = 7 downto 0 do
+    for j = 0 to 7 do
       print_string " | ";
       match board.(i).(j) with
       | { piece_type = Blank; piece_color = _; piece_pos = _ } ->
