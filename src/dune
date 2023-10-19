@@ -1,3 +1,4 @@
-(executable
- (name test)
- (libraries ounit2))
+(library
+ (name chess)
+ (public_name Chess)
+ (libraries str))

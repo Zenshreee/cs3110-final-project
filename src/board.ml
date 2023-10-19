@@ -38,6 +38,12 @@ let black_pieces =
     pawn = "♟︎";
   }
 
+let ranks = [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ]
+
+(* rows *)
+let files = [ "1"; "2"; "3"; "4"; "5"; "6"; "7"; "8" ]
+
+(* columns *)
 let board =
   [|
     [|
@@ -122,7 +128,7 @@ let board =
     |];
   |]
 
-let print_board =
+let print_board board =
   for i = 0 to 7 do
     print_string "\n________________________________\n";
     for j = 0 to 7 do
@@ -152,3 +158,5 @@ let print_board =
     done
   done
 (* print_string "\n________________________________\n"; *)
+
+let make_move (m : string) = failwith "unimplemented"
