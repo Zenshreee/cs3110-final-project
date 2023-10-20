@@ -13,3 +13,7 @@ test:
 	
 game:
 	OCAMLRUNPARAM=b dune exec main/main.exe
+
+zip:
+	rm -f chess.zip
+	zip -r chess.zip . -x@exclude.lst
