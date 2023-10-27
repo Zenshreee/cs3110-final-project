@@ -14,7 +14,10 @@ let rec repl state : unit =
   match move with
   | "quit" -> print_endline "bye"
   (* add verification for checkmate, empassant, other moves, etc. *)
-  | _ -> print_board (make_move move init_board)
+  | _ ->
+      print_board (make_move move init_board);
+      print_string "\n\n";
+      repl state
 
 (** black_winner is var of type [string]. It represents graphic displayed when
     black wins.*)

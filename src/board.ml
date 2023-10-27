@@ -131,7 +131,8 @@ let board =
 
 let print_board board =
   for i = 0 to 7 do
-    print_string "\n________________________________\n";
+    print_string "\n------------------------------------\n";
+    print_string (" " ^ string_of_int (8 - i));
     for j = 0 to 7 do
       print_string " | ";
       match board.(i).(j) with
@@ -145,7 +146,7 @@ let print_board board =
           | Bishop -> print_string black_pieces.bishop
           | Queen -> print_string black_pieces.queen
           | King -> print_string black_pieces.king
-          | _ -> print_string " ")
+          | _ -> print_string " |")
       | { piece_type = p; piece_color = White; piece_pos = _ } -> (
           match p with
           | Pawn -> print_string white_pieces.pawn
@@ -154,10 +155,15 @@ let print_board board =
           | Bishop -> print_string white_pieces.bishop
           | Queen -> print_string white_pieces.queen
           | King -> print_string white_pieces.king
-          | _ -> print_string " ")
+          | _ -> print_string " |")
       | _ -> print_string " "
-    done
-  done
+    done;
+    print_string " | "
+  done;
+  print_string
+    "\n\
+     ------------------------------------\n\
+    \   | a | b | c | d | e | f | g | h |\n"
 
 (*Sets a piece on board curr at position pos*)
 let board_set piece pos curr =
