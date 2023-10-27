@@ -10,6 +10,9 @@ let init_board = board
 (* read-eval-print loop *)
 let rec repl state : unit =
   print_endline "Enter a move. Format: <start pos> <end pos>";
+  (match state with
+  | false -> print_endline "White's turn"
+  | true -> print_endline "Black's turn");
   print_string "> ";
   let move = read_line () in
   match move with
@@ -18,7 +21,7 @@ let rec repl state : unit =
   | _ ->
       print_board (make_move move init_board);
       print_string "\n\n";
-      repl state
+      repl (not state)
 
 (** black_winner is var of type [string]. It represents graphic displayed when
     black wins.*)
@@ -28,7 +31,7 @@ let rec repl state : unit =
 (*********** command line interface ***********)
 let () =
   print_endline "Welcome to Chess!";
-  print_endline "Type 'checkmate' to quit.";
-  print_endline "Type 'help' for a list of commands.";
+  print_endline "Type 'quit' to quit.";
+  (* print_endline "Type 'help' for a list of commands."; *)
   print_board board;
-  repl true
+  repl false
