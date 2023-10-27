@@ -11,7 +11,7 @@ let position_of_string : string -> int * int =
  fun s ->
   let x = int_of_char (String.get s 0) - int_of_char 'a' in
   let y = int_of_char (String.get s 1) - int_of_char '1' in
-  (x, y)
+  (y, x)
 
 (* 1. Check whether a position is within bounds of the game board. *)
 let within_bounds (x, y) : bool =
@@ -19,6 +19,11 @@ let within_bounds (x, y) : bool =
 
 (* Helper: Determine the piece at a specific position based on the game
    board. *)
+let piece_at_pos (pos : int * int) (board : piece array array) : piece =
+  let x, y = pos in
+  let row = Array.get board x in
+  let p = Array.get row y in
+  p
 
 (* 2. Check whether a move is valid for a given piece *)
 let valid_move piece move : bool =
@@ -31,3 +36,7 @@ let valid_move piece move : bool =
    the game board *)
 
 let verify_move board piece move : bool = failwith "unimplemented"
+
+let move_piece board piece move : 'a =
+  let verify_move_placeholder = true in
+  assert verify_move_placeholder

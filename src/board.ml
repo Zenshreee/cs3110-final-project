@@ -1,4 +1,5 @@
 open Pieces
+open Moves
 
 type white_pieces = {
   king : string;
@@ -157,6 +158,27 @@ let print_board board =
       | _ -> print_string " "
     done
   done
-(* print_string "\n________________________________\n"; *)
 
-let make_move (m : string) = failwith "unimplemented"
+(*Sets a piece on board curr at position pos*)
+let board_set piece pos curr =
+  let z, w = pos in
+  let row = curr.(z) in
+  let p = set_piece_pos piece pos in
+  let _ = row.(w) <- p in
+  let _ = curr.(z) <- row in
+  curr
+
+(* print_string "\n________________________________\n"; *)
+(* Precondition: Input must be in chess notation. For example "E4 E5"*)
+let make_move (m : string) (curr : piece array array) : piece array array =
+  let start_pos = position_of_string (String.sub m 0 2) in
+  let end_pos = position_of_string (String.sub m 3 2) in
+
+  (*Placeholder code for demo purposes*)
+  let p = piece_at_pos start_pos curr in
+
+  (*Set the place where the piece started to blank*)
+  let new_board = board_set (make_piece Blank None start_pos) start_pos curr in
+  (*Set the piece to the end position*)
+  let final_board = board_set p end_pos new_board in
+  final_board
