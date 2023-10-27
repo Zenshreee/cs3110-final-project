@@ -9,6 +9,7 @@ let init_board = board
 
 (* read-eval-print loop *)
 let rec repl state : unit =
+  print_endline "Enter a move. Format: <start pos> <end pos>";
   print_string "> ";
   let move = read_line () in
   match move with
