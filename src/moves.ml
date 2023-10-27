@@ -10,7 +10,7 @@ open Pieces
 let position_of_string : string -> int * int =
  fun s ->
   let x = int_of_char (String.get s 0) - int_of_char 'a' in
-  let y = int_of_char (String.get s 1) - int_of_char '1' in
+  let y = int_of_char (String.get s 1) - int_of_char '1' |> ( - ) 8 in
   (y, x)
 
 (* 1. Check whether a position is within bounds of the game board. *)
