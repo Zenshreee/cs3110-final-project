@@ -30,4 +30,5 @@ let () =
   print_endline "Welcome to Chess!";
   print_endline "Type 'checkmate' to quit.";
   print_endline "Type 'help' for a list of commands.";
+  print_board board;
   repl true
