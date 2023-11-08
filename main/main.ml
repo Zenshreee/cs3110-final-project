@@ -6,6 +6,7 @@ exception GameEnd
 (** [GameEnd] is an exception.*)
 
 let init_board = board
+let curr_board = Array.copy board
 
 (* read-eval-print loop *)
 let rec repl state : unit =
@@ -18,8 +19,13 @@ let rec repl state : unit =
   match move with
   | "quit" -> print_endline "bye"
   (* add verification for checkmate, empassant, other moves, etc. *)
+  | "reset" ->
+      let curr_board = Array.copy board in
+      print_board curr_board;
+      print_string "\n\n";
+      repl (not state)
   | _ ->
-      print_board (make_move move init_board);
+      print_board (make_move move curr_board);
       print_string "\n\n";
       repl (not state)
 
