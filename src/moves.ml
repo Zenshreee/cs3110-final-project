@@ -30,6 +30,8 @@ let piece_at_pos (pos : int * int) (board : piece array array) : piece =
 
 (* 2. Check if the pawn is moving to a valid square. atk_piece indicates the
    starting position, while def_piece indicates the ending position. *)
+
+(* 2. a) check valid move for Pawn *)
 let check_pawn atk_piece def_piece dir =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
@@ -51,6 +53,35 @@ let check_pawn atk_piece def_piece dir =
     else false
   end
 
+  (* 2. b) check valid move for Knight *)
+let check_knight atk_piece def_piece =
+  let x, y = atk_piece.piece_pos in
+  let x', y' = def_piece.piece_pos in
+  if atk_piece.piece_pos = def_piece.piece_pos then false
+  else begin
+    if ((((x = x' + 2) || (x = x' - 2)) 
+      && ((y = y' + 1) || (y = y' - 1))) ||
+    (((x = x' + 1) || (x = x' - 1)) 
+      && ((y = y' + 2) || (y = y' - 2))))
+      && def_piece.piece_color <> atk_piece.piece_color 
+      then true
+    else false
+  end
+
+  (* 2. c) check valid move for King *)
+  let check_king atk_piece def_piece =
+    let x, y = atk_piece.piece_pos in
+    let x', y' = def_piece.piece_pos in
+    if atk_piece.piece_pos = def_piece.piece_pos then false
+    else begin
+      if ((x = x' + 1) || (x = x' - 1) || (x = x')) 
+        && ((y = y' + 1) || (y = y' - 1) || (y = y')) 
+        && def_piece.piece_color <> atk_piece.piece_color 
+        then true
+      else false
+    end
+
+
 let check_color atk_piece turn : bool =
   if atk_piece.piece_color = turn then true else false
 
@@ -71,6 +102,8 @@ let valid_move board atk_piece move turn : bool =
           check_pawn atk_piece def_piece
             (let a = -1 in
              a)
+    | Knight -> check_knight atk_piece def_piece
+    | King -> check_king atk_piece def_piece
     | _ -> true
 
 (* 4. Check whether a move is valid for a given piece given the current state of
