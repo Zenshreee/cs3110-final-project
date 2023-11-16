@@ -53,33 +53,48 @@ let check_pawn atk_piece def_piece dir =
     else false
   end
 
-  (* 2. b) check valid move for Knight *)
+(* 2. b) check valid move for Knight *)
 let check_knight atk_piece def_piece =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
   if atk_piece.piece_pos = def_piece.piece_pos then false
   else begin
-    if ((((x = x' + 2) || (x = x' - 2)) 
-      && ((y = y' + 1) || (y = y' - 1))) ||
-    (((x = x' + 1) || (x = x' - 1)) 
-      && ((y = y' + 2) || (y = y' - 2))))
-      && def_piece.piece_color <> atk_piece.piece_color 
-      then true
+    if
+      (((x = x' + 2 || x = x' - 2) && (y = y' + 1 || y = y' - 1))
+      || ((x = x' + 1 || x = x' - 1) && (y = y' + 2 || y = y' - 2)))
+      && def_piece.piece_color <> atk_piece.piece_color
+    then true
     else false
   end
 
-  (* 2. c) check valid move for King *)
-  let check_king atk_piece def_piece =
-    let x, y = atk_piece.piece_pos in
-    let x', y' = def_piece.piece_pos in
-    if atk_piece.piece_pos = def_piece.piece_pos then false
-    else begin
-      if ((x = x' + 1) || (x = x' - 1) || (x = x')) 
-        && ((y = y' + 1) || (y = y' - 1) || (y = y')) 
-        && def_piece.piece_color <> atk_piece.piece_color 
-        then true
-      else false
-    end
+(* 2. c) check valid move for King *)
+let check_king atk_piece def_piece =
+  let x, y = atk_piece.piece_pos in
+  let x', y' = def_piece.piece_pos in
+  if atk_piece.piece_pos = def_piece.piece_pos then false
+  else begin
+    if
+      (x = x' + 1 || x = x' - 1 || x = x')
+      && (y = y' + 1 || y = y' - 1 || y = y')
+      && def_piece.piece_color <> atk_piece.piece_color
+    then true
+    else false
+  end
+
+let check_path 
+
+(* 2. d) check valid move for Rook *)
+let check_rook atk_piece def_piece = 
+  let x, y = atk_piece.piece_pos in let x', y' = def_piece.piece_pos in
+  if (x = x')
+
+let check_bishop atk_piece def_piece = 
+  let x, y = atk_piece.piece_pos in let x', y' = def_piece.piece_pos in
+  let slope = (y' - y) / (x' - x) in if slope <> 1 || slope <> -1 then false else 
+    
+
+(* 2. e) check valid move for Queen *)
+
 
 
 let check_color atk_piece turn : bool =
@@ -87,8 +102,7 @@ let check_color atk_piece turn : bool =
 
 (* 3. Check whether a move is valid for a gven piece *)
 let valid_move board atk_piece move turn : bool =
-  let color_check = check_color atk_piece turn in
-  if color_check = false then false
+  if not (check_color atk_piece turn) then false
   else
     let def_piece = piece_at_pos move board in
     match atk_piece.piece_type with
