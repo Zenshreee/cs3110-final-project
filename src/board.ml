@@ -176,23 +176,23 @@ let board_set piece pos curr =
   curr
 
 (* Precondition: Input must be in chess notation. For example "e4 e5"*)
-let make_move (m : string) (curr_game_state : piece array array) :
-    piece array array =
+let make_move (m : string) (curr_game_state : piece array array) (turn : color)
+    : piece array array * bool =
   let start_pos = position_of_string (String.sub m 0 2) in
   let end_pos = position_of_string (String.sub m 3 2) in
   let p = piece_at_pos start_pos curr_game_state in
 
   (* Placeholder code for demo purposes. *)
-  if valid_move curr_game_state p end_pos then begin
+  if valid_move curr_game_state p end_pos turn then begin
     (* Set the place where the piece started to blank. *)
     let new_board =
       board_set (make_piece Blank None start_pos) start_pos curr_game_state
     in
     (* Set the piece to the end position. *)
     let final_board = board_set p end_pos new_board in
-    final_board
+    (final_board, true)
   end
   else begin
     print_endline "illegal move";
-    curr_game_state
+    (curr_game_state, false)
   end

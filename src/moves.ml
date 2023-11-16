@@ -51,29 +51,33 @@ let check_pawn atk_piece def_piece dir =
     else false
   end
 
+let check_color atk_piece turn : bool =
+  if atk_piece.piece_color = turn then true else false
+
 (* 3. Check whether a move is valid for a gven piece *)
-let valid_move board atk_piece move : bool =
-  let def_piece = piece_at_pos move board in
-  match atk_piece.piece_type with
-  | Blank -> false
-  | Pawn ->
-      if get_piece_colour atk_piece = Black then
-        check_pawn atk_piece def_piece
-          (let a = 1 in
-           a)
-      else
-        check_pawn atk_piece def_piece
-          (let a = -1 in
-           a)
-  | _ -> true
+let valid_move board atk_piece move turn : bool =
+  let color_check = check_color atk_piece turn in
+  if color_check = false then false
+  else
+    let def_piece = piece_at_pos move board in
+    match atk_piece.piece_type with
+    | Blank -> false
+    | Pawn ->
+        if get_piece_colour atk_piece = Black then
+          check_pawn atk_piece def_piece
+            (let a = 1 in
+             a)
+        else
+          check_pawn atk_piece def_piece
+            (let a = -1 in
+             a)
+    | _ -> true
 
 (* 4. Check whether a move is valid for a given piece given the current state of
    the game board. *)
 
-let verify_move (board : piece array array) (piece : piece) (move : int * int) :
-    bool =
-  let valid = valid_move board piece move in
-  valid
+(* let verify_move (board : piece array array) (piece : piece) (move : int *
+   int) : bool = let valid = valid_move board piece move in valid *)
 
 let move_piece board piece move : 'a =
   let verify_move_placeholder = true in
