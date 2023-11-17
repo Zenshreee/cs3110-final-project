@@ -31,6 +31,17 @@ let piece_at_pos (pos : int * int) (board : piece array array) : piece =
 (* 2. Check if the pawn is moving to a valid square. atk_piece indicates the
    starting position, while def_piece indicates the ending position. *)
 
+(* Helper: Determine the color of a piece. *)
+let string_of_piece_type piece_type =
+  match piece_type with
+  | Pawn -> "Pawn"
+  | Knight -> "Knight"
+  | Bishop -> "Bishop"
+  | Rook -> "Rook"
+  | Queen -> "Queen"
+  | King -> "King"
+  | Blank -> "Blank"
+
 (* 2. a) check valid move for Pawn *)
 let check_pawn atk_piece def_piece dir =
   let x, y = atk_piece.piece_pos in
@@ -81,21 +92,84 @@ let check_king atk_piece def_piece =
     else false
   end
 
-let check_path 
-
 (* 2. d) check valid move for Rook *)
-let check_rook atk_piece def_piece = 
-  let x, y = atk_piece.piece_pos in let x', y' = def_piece.piece_pos in
-  if (x = x')
+(* let check_rook (board : piece array array) atk_piece def_piece =
+  let result = ref true in
+  let x, y = atk_piece.piece_pos in
+  let x', y' = def_piece.piece_pos in
+  if x = x' then
+    print_endline "x = x'";
+    if y - y' < 0 then
+      for i = y to y' - 1 do
+        if board.(x).(i).piece_type <> Blank then 
+          print_endline "1";
+          result := false
+      done
+    else if y - y' > 0 then
+      for i = y downto y' + 1 do
+        if board.(x).(i).piece_type <> Blank then 
+          print_endline "2";
+          result := false
+      done
+  else if y = y' then
+    print_endline "y = y'";
+    print_endline (string_of_bool !result);
+    if x - x' < 0 then
+      for i = x + 1 to x' - 1 do
+        if board.(i).(y).piece_type <> Blank then 
+          print_endline "3";
+        result := false;
+        print_endline "hi";
+        print_endline (string_of_bool !result);
+      done
+    else if x - x' > 0 then
+      print_endline "hbflihe";
+      print_endline (string_of_bool !result);
+      for i = x - 1 downto x' + 1 do
+        print_endline(string_of_piece_type board.(i).(y).piece_type);
+        if (board.(i).(y).piece_type <> Blank) then 
+          print_endline "4";
+          result := false
+      done;
+  print_endline "bye";
+  print_endline(string_of_bool !result);
+  !result && def_piece.piece_color <> atk_piece.piece_color *)
 
-let check_bishop atk_piece def_piece = 
-  let x, y = atk_piece.piece_pos in let x', y' = def_piece.piece_pos in
-  let slope = (y' - y) / (x' - x) in if slope <> 1 || slope <> -1 then false else 
-    
+(* let check_bishop (board : piece array array) atk_piece def_piece =
+  let x, y = atk_piece.piece_pos in
+  let x', y' = def_piece.piece_pos in
+  let slope = (y' - y) / (x' - x) in
+  if slope <> 1 || slope <> -1 then false
+  else begin
+    let result = ref true in
+    if slope = 1 then
+      if x - x' < 0 then
+        for i = x to x' - 1 do
+          if board.(i).(i).piece_type <> Blank then result := false
+        done
+      else
+        for i = x downto x' + 1 do
+          if board.(i).(i).piece_type <> Blank then result := false
+        done
+    else if slope = -1 then
+      if x - x' < 0 then
+        for i = x to x' - 1 do
+          if board.(i).(y - i).piece_type <> Blank then result := false
+        done
+      else
+        for i = x downto x' + 1 do
+          if board.(i).(y - i).piece_type <> Blank then result := false
+        done;
+    !result && def_piece.piece_color <> atk_piece.piece_color
+  end *)
 
 (* 2. e) check valid move for Queen *)
-
-
+(* let check_queen board atk_piece def_piece =
+  let x, y = atk_piece.piece_pos in
+  let x', y' = def_piece.piece_pos in
+  if (x = x' || y = y') && not (x = x' && y = y') then
+    check_rook board atk_piece def_piece
+  else check_bishop board atk_piece def_piece *)
 
 let check_color atk_piece turn : bool =
   if atk_piece.piece_color = turn then true else false
@@ -118,7 +192,10 @@ let valid_move board atk_piece move turn : bool =
              a)
     | Knight -> check_knight atk_piece def_piece
     | King -> check_king atk_piece def_piece
-    | _ -> true
+    (* | Rook -> check_rook board atk_piece def_piece
+    | Bishop -> check_bishop board atk_piece def_piece
+    | Queen -> check_queen board atk_piece def_piece *)
+    | _ -> false
 
 (* 4. Check whether a move is valid for a given piece given the current state of
    the game board. *)

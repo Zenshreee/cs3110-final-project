@@ -183,7 +183,10 @@ let make_move (m : string) (curr_game_state : piece array array) (turn : color)
   let p = piece_at_pos start_pos curr_game_state in
 
   (* Placeholder code for demo purposes. *)
-  if valid_move curr_game_state p end_pos turn then begin
+  if
+    (within_bounds end_pos && within_bounds start_pos)
+    && valid_move curr_game_state p end_pos turn
+  then begin
     (* Set the place where the piece started to blank. *)
     let new_board =
       board_set (make_piece Blank None start_pos) start_pos curr_game_state
