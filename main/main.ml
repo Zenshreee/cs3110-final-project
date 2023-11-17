@@ -8,6 +8,7 @@ exception GameEnd
 let init_board = board
 let curr_board = Array.copy board
 
+
 (* read-eval-print loop *)
 let rec repl state : unit =
   print_endline "Enter a legal move. Format: <start pos> <end pos>";
