@@ -53,11 +53,10 @@ let rec check_path (board : piece array array) (step : int * int)
     (fst current_pos + fst step, snd current_pos + snd step)
   in
   if next_x = fst end_pos && next_y = snd end_pos then
+    board.(next_x).(next_y).piece_color <> atk_piece_color
+  else
     board.(next_x).(next_y).piece_type = Blank
-    || board.(next_x).(next_y).piece_color <> atk_piece_color
-  else if board.(next_x).(next_y).piece_type = Blank then
-    check_path board step (next_x, next_y) end_pos atk_piece_color
-  else false
+    && check_path board step (next_x, next_y) end_pos atk_piece_color
 
 (* 2. a) check valid move for Pawn *)
 let check_pawn atk_piece def_piece dir =
