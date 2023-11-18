@@ -1,13 +1,15 @@
 open Chess
 open Pieces
+open Moves
 open Board
+
+
 
 exception GameEnd
 (** [GameEnd] is an exception.*)
 
 let init_board = board
 let curr_board = Array.copy board
-
 
 (* read-eval-print loop *)
 let rec repl state : unit =
@@ -20,18 +22,6 @@ let rec repl state : unit =
   let move = read_line () in
   match move with
   | "quit" -> print_endline "bye"
-  (* add verification for checkmate, empassant, other moves, etc. *)
-  (* | "reset" ->
-      let curr_board = Array.copy board in
-      print_board curr_board;
-      print_string "\n\n";
-      let color =
-        match state with
-        | White -> Black
-        | Black -> White
-        | _ -> None
-      in
-      repl color *)
   | _ -> (
       let b, valid = make_move move curr_board state in
       match valid with

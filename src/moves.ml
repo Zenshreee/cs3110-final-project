@@ -1,5 +1,11 @@
 open Pieces
 
+type last_move = {
+  last_piece : piece;
+  last_start_pos : int * int;
+  last_end_pos : int * int;
+}
+
 (* If testing is true, alternating turns are not enforced. *)
 let testing = false
 
@@ -60,15 +66,29 @@ let rec check_path (board : piece array array) (step : int * int)
   else false
 
 (* 2. a) check valid move for Pawn *)
-let check_pawn attacking_piece defending_piece =
+let check_pawn attacking_piece defending_piece (last_move : Moves.last_move) =
   let start_col, start_row = attacking_piece.piece_pos in
   let target_col, target_row = defending_piece.piece_pos in
   let direction = target_row - start_row in
+
+  (* En passant check *)
+  let _, last_start_row = last_move.last_start_pos in
+  let _, last_end_row = last_move.last_end_pos in
+
+  let is_en_passant_move =
+    abs (start_col - target_col) = 1
+    && abs (start_row - target_row) = 1
+    && last_move.last_piece.piece_type = Pawn
+    && (start_row = 3 || start_row = 4)
+    && abs (last_start_row - last_end_row) = 2
+    && last_move.last_end_pos = (start_col, target_row)
+  in
 
   (* Determine direction based on row difference *)
   if attacking_piece.piece_pos = defending_piece.piece_pos then false
   else
     match direction with
+    | (1 | -1) when is_en_passant_move -> true
     | 1 | -1 ->
         (* Single step forward *)
         (target_col = start_col && defending_piece.piece_type = Blank)
@@ -143,7 +163,8 @@ let check_queen board atk_piece def_piece =
   check_rook board atk_piece def_piece || check_bishop board atk_piece def_piece
 
 (* 3. Check whether a move is valid for a given piece *)
-let valid_move board atk_piece move turn : bool =
+let valid_move (board : piece array array) (atk_piece : piece)
+    (move : int * int) (turn : color) (last_move : Moves.last_move) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
   in
@@ -153,7 +174,7 @@ let valid_move board atk_piece move turn : bool =
     let def_piece = piece_at_pos move board in
     match atk_piece.piece_type with
     | Blank -> false
-    | Pawn -> check_pawn atk_piece def_piece
+    | Pawn -> check_pawn atk_piece def_piece last_move
     | Knight -> check_knight atk_piece def_piece
     | King -> check_king atk_piece def_piece
     | Rook -> check_rook board atk_piece def_piece

@@ -1,8 +1,6 @@
 open Pieces
 open Moves
 
-
-
 type white_pieces = {
   king : string;
   queen : string;
@@ -11,6 +9,15 @@ type white_pieces = {
   bishop : string;
   pawn : string;
 }
+
+let last_move : last_move ref =
+  ref
+    {
+      last_piece =
+        { piece_type = Blank; piece_color = White; piece_pos = (0, 0) };
+      last_start_pos = (0, 0);
+      last_end_pos = (0, 0);
+    }
 
 let white_pieces =
   {
@@ -178,17 +185,20 @@ let board_set piece pos curr =
   curr
 
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
-let make_move (m : string) (curr_game_state : piece array array) (turn : color)
-    : piece array array * bool =
-  let start_pos = position_of_string (String.sub m 0 2) in
-  let end_pos = position_of_string (String.sub m 3 2) in
+let make_move (move : string) (curr_game_state : piece array array)
+    (turn : color) : piece array array * bool =
+  let start_pos = position_of_string (String.sub move 0 2) in
+  let end_pos = position_of_string (String.sub move 3 2) in
   let p = piece_at_pos start_pos curr_game_state in
 
   (* Placeholder code for demo purposes. *)
   if
     (within_bounds end_pos && within_bounds start_pos)
-    && valid_move curr_game_state p end_pos turn
+    && valid_move curr_game_state p end_pos turn !last_move
   then begin
+    (* Update the last move's piece, starting position, and ending position. *)
+    last_move :=
+      { last_piece = p; last_start_pos = start_pos; last_end_pos = end_pos };
     (* Set the place where the piece started to blank. *)
     let new_board =
       board_set (make_piece Blank None start_pos) start_pos curr_game_state
