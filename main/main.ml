@@ -21,7 +21,7 @@ let rec repl state : unit =
   match move with
   | "quit" -> print_endline "bye"
   (* add verification for checkmate, empassant, other moves, etc. *)
-  | "reset" ->
+  (* | "reset" ->
       let curr_board = Array.copy board in
       print_board curr_board;
       print_string "\n\n";
@@ -31,7 +31,7 @@ let rec repl state : unit =
         | Black -> White
         | _ -> None
       in
-      repl color
+      repl color *)
   | _ -> (
       let b, valid = make_move move curr_board state in
       match valid with

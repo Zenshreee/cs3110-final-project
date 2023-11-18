@@ -168,7 +168,7 @@ let print_tuple (x, y) =
   print_int y;
   print_string ")"
 
-(*Sets a piece on board curr at position pos*)
+(* Sets a piece on board curr at position pos. *)
 let board_set piece pos curr =
   let z, w = pos in
   let row = curr.(z) in
@@ -177,7 +177,7 @@ let board_set piece pos curr =
   let _ = curr.(z) <- row in
   curr
 
-(* Precondition: Input must be in chess notation. For example "e4 e5"*)
+(* Precondition: Input must be in chess notation. For example "e4 e5". *)
 let make_move (m : string) (curr_game_state : piece array array) (turn : color)
     : piece array array * bool =
   let start_pos = position_of_string (String.sub m 0 2) in
