@@ -66,7 +66,7 @@ let rec check_path (board : piece array array) (step : int * int)
   else false
 
 (* 2. a) check valid move for Pawn *)
-let check_pawn attacking_piece defending_piece (last_move : Moves.last_move) =
+let check_pawn attacking_piece defending_piece (last_move : last_move) =
   let start_col, start_row = attacking_piece.piece_pos in
   let target_col, target_row = defending_piece.piece_pos in
   let direction = target_row - start_row in
@@ -164,7 +164,7 @@ let check_queen board atk_piece def_piece =
 
 (* 3. Check whether a move is valid for a given piece *)
 let valid_move (board : piece array array) (atk_piece : piece)
-    (move : int * int) (turn : color) (last_move : Moves.last_move) : bool =
+    (move : int * int) (turn : color) (last_move : last_move) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
   in
