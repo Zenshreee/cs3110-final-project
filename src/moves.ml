@@ -65,43 +65,60 @@ let rec check_path (board : piece array array) (step : int * int)
     check_path board step (next_x, next_y) end_pos atk_piece_color
   else false
 
+(* Helper function to check if move is en_passant move. *)
+let is_en_passant_move attacking_pawn last_move end_pos board =
+  let start_row, start_col = attacking_pawn.piece_pos in
+  let end_row, end_col = end_pos in
+  let last_start_row, last_start_col = last_move.last_start_pos in
+  let last_end_row, last_end_col = last_move.last_end_pos in
+
+  last_move.last_piece.piece_type = Pawn
+  && abs (last_start_row - last_end_row) = 2
+  && abs (start_col - end_col) = 1
+  && start_row = last_end_row
+  && abs (end_row - last_end_row) = 1
+  && board.(last_end_row).(last_end_col).piece_type = Pawn
+  && ((attacking_pawn.piece_color = White && start_row = 3 && end_row = 2)
+     || (attacking_pawn.piece_color = Black && start_row = 4 && end_row = 5))
+  && board.(last_end_row).(last_end_col).piece_color
+     <> attacking_pawn.piece_color
+
 (* 2. a) check valid move for Pawn *)
-let check_pawn attacking_piece defending_piece (last_move : last_move) =
-  let start_col, start_row = attacking_piece.piece_pos in
-  let target_col, target_row = defending_piece.piece_pos in
+let check_pawn attacking_piece defending_piece (last_move : last_move) board =
+  let start_row, start_col = attacking_piece.piece_pos in
+  let target_row, target_col = defending_piece.piece_pos in
   let direction = target_row - start_row in
 
-  (* En passant check *)
-  let _, last_start_row = last_move.last_start_pos in
-  let _, last_end_row = last_move.last_end_pos in
-
-  let is_en_passant_move =
-    abs (start_col - target_col) = 1
-    && abs (start_row - target_row) = 1
-    && last_move.last_piece.piece_type = Pawn
-    && (start_row = 3 || start_row = 4)
-    && abs (last_start_row - last_end_row) = 2
-    && last_move.last_end_pos = (start_col, target_row)
-  in
+  print_endline "direction:";
+  print_int direction;
 
   (* Determine direction based on row difference *)
   if attacking_piece.piece_pos = defending_piece.piece_pos then false
   else
     match direction with
-    | (1 | -1) when is_en_passant_move -> true
+    | (1 | -1)
+      when is_en_passant_move attacking_piece last_move
+             defending_piece.piece_pos board ->
+        print_endline "1";
+        true
     | 1 | -1 ->
         (* Single step forward *)
+        print_endline "2";
         (target_col = start_col && defending_piece.piece_type = Blank)
         || abs (target_col - start_col) = 1
            && defending_piece.piece_color <> None
            && defending_piece.piece_color <> attacking_piece.piece_color
     | 2 when start_row = 1 && target_col = start_col ->
+        print_endline "3";
         (* Black pawn's initial two-step move *)
         defending_piece.piece_type = Blank
     | -2 when start_row = 6 && target_col = start_col ->
+        print_endline "4";
         (* White pawn's initial two-step move *)
         defending_piece.piece_type = Blank
-    | _ -> false
+    | _ ->
+        print_endline "5";
+        false
 
 (* 2. b) check valid move for Knight *)
 let check_knight atk_piece def_piece =
@@ -174,7 +191,7 @@ let valid_move (board : piece array array) (atk_piece : piece)
     let def_piece = piece_at_pos move board in
     match atk_piece.piece_type with
     | Blank -> false
-    | Pawn -> check_pawn atk_piece def_piece last_move
+    | Pawn -> check_pawn atk_piece def_piece last_move board
     | Knight -> check_knight atk_piece def_piece
     | King -> check_king atk_piece def_piece
     | Rook -> check_rook board atk_piece def_piece

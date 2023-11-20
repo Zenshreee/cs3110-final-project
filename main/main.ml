@@ -3,8 +3,6 @@ open Pieces
 open Moves
 open Board
 
-
-
 exception GameEnd
 (** [GameEnd] is an exception.*)
 
@@ -42,8 +40,6 @@ let rec repl state : unit =
 
 (** black_winner is var of type [string]. It represents graphic displayed when
     black wins.*)
-
-(* let () = print_board init_board *)
 
 (*********** command line interface ***********)
 let () =

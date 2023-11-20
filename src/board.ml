@@ -184,6 +184,24 @@ let board_set piece pos curr =
   let _ = curr.(z) <- row in
   curr
 
+(* Helper function to check if move is en_passant move. *)
+let is_en_passant_move attacking_pawn last_move end_pos board =
+  let start_row, start_col = attacking_pawn.piece_pos in
+  let end_row, end_col = end_pos in
+  let last_start_row, last_start_col = last_move.last_start_pos in
+  let last_end_row, last_end_col = last_move.last_end_pos in
+
+  last_move.last_piece.piece_type = Pawn
+  && abs (last_start_row - last_end_row) = 2
+  && abs (start_col - end_col) = 1
+  && start_row = last_end_row
+  && abs (end_row - last_end_row) = 1
+  && board.(last_end_row).(last_end_col).piece_type = Pawn
+  && ((attacking_pawn.piece_color = White && start_row = 3 && end_row = 2)
+     || (attacking_pawn.piece_color = Black && start_row = 4 && end_row = 5))
+  && board.(last_end_row).(last_end_col).piece_color
+     <> attacking_pawn.piece_color
+
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 let make_move (move : string) (curr_game_state : piece array array)
     (turn : color) : piece array array * bool =
@@ -191,21 +209,31 @@ let make_move (move : string) (curr_game_state : piece array array)
   let end_pos = position_of_string (String.sub move 3 2) in
   let p = piece_at_pos start_pos curr_game_state in
 
-  (* Placeholder code for demo purposes. *)
   if
     (within_bounds end_pos && within_bounds start_pos)
     && valid_move curr_game_state p end_pos turn !last_move
   then begin
-    (* Update the last move's piece, starting position, and ending position. *)
     last_move :=
       { last_piece = p; last_start_pos = start_pos; last_end_pos = end_pos };
-    (* Set the place where the piece started to blank. *)
     let new_board =
       board_set (make_piece Blank None start_pos) start_pos curr_game_state
     in
-    (* Set the piece to the end position. *)
-    let final_board = board_set p end_pos new_board in
-    (final_board, true)
+
+    let end_row, end_col = end_pos in
+
+    if is_en_passant_move p !last_move end_pos curr_game_state then
+      let captured_pawn_row =
+        if p.piece_color = White then end_row + 1 else end_row - 1
+      in
+      let captured_pawn = make_piece Blank None (captured_pawn_row, end_col) in
+      let new_board =
+        board_set captured_pawn (captured_pawn_row, end_col) new_board
+      in
+      let final_board = board_set p end_pos new_board in
+      (final_board, true)
+    else
+      let final_board = board_set p end_pos new_board in
+      (final_board, true)
   end
   else begin
     print_endline "illegal move";
