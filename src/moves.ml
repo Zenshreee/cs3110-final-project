@@ -87,10 +87,13 @@ let is_en_passant_move attacking_pawn last_move end_pos board =
 let check_pawn attacking_piece defending_piece (last_move : last_move) board =
   let start_row, start_col = attacking_piece.piece_pos in
   let target_row, target_col = defending_piece.piece_pos in
+  let color = attacking_piece.piece_color in
   let direction = target_row - start_row in
 
   (* Determine direction based on row difference *)
-  if attacking_piece.piece_pos = defending_piece.piece_pos then false
+  if direction > 0 && color <> Black then false
+  else if direction < 0 && color <> White then false
+  else if attacking_piece.piece_pos = defending_piece.piece_pos then false
   else
     match direction with
     | (1 | -1)

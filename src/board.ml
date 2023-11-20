@@ -201,11 +201,32 @@ let is_en_passant_move attacking_pawn last_move end_pos board =
   && board.(last_end_row).(last_end_col).piece_color
      <> attacking_pawn.piece_color
 
+(* Helper function to check if move is a pawn promotion*)
+let is_pawn_promotion attacking_pawn end_pos board =
+  let is_pawn = attacking_pawn.piece_type = Pawn in
+  let end_row, _ = end_pos in
+  let color = attacking_pawn.piece_color in
+  match color with
+  | White when is_pawn -> end_row = 0
+  | Black when is_pawn -> end_row = 7
+  | _ -> false
+
 (* Helper function to update the board and last move *)
 let update_board_and_last_move p start_pos end_pos new_board =
   last_move :=
     { last_piece = p; last_start_pos = start_pos; last_end_pos = end_pos };
   board_set p end_pos new_board
+
+let rec ask_match_choice a =
+  print_string "Enter a valid piece type to promote to: ";
+  let choice = read_line () in
+  let lower = String.lowercase_ascii choice in
+  match lower with
+  | "knight" -> Knight
+  | "queen" -> Queen
+  | "bishop" -> Bishop
+  | "rook" -> Rook
+  | _ -> ask_match_choice ()
 
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 let make_move (move : string) (curr_game_state : piece array array)
@@ -223,6 +244,7 @@ let make_move (move : string) (curr_game_state : piece array array)
     in
 
     if is_en_passant_move p !last_move end_pos curr_game_state then begin
+      print_string "was enpes";
       let end_row, end_col = end_pos in
       let captured_pawn_row =
         if p.piece_color = White then end_row + 1 else end_row - 1
@@ -237,11 +259,23 @@ let make_move (move : string) (curr_game_state : piece array array)
       in
       (final_board, true)
     end
-    else
+    else if is_pawn_promotion p end_pos board then begin
+      print_string "pawn promotion \n";
+      let piece_type = ask_match_choice () in
+      let color = p.piece_color in
+      let final_board =
+        update_board_and_last_move
+          (make_piece piece_type color end_pos)
+          start_pos end_pos new_board
+      in
+      (final_board, true)
+    end
+    else (
+      print_string "was valid";
       let final_board =
         update_board_and_last_move p start_pos end_pos new_board
       in
-      (final_board, true)
+      (final_board, true))
   else begin
     print_endline "illegal move";
     (curr_game_state, false)
