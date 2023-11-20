@@ -1,6 +1,7 @@
 open Pieces
 open Moves
 
+(************************ Initialize pieces and board. ************************)
 type white_pieces = {
   king : string;
   queen : string;
@@ -9,15 +10,6 @@ type white_pieces = {
   bishop : string;
   pawn : string;
 }
-
-let last_move : last_move ref =
-  ref
-    {
-      last_piece =
-        { piece_type = Blank; piece_color = White; piece_pos = (0, 0) };
-      last_start_pos = (0, 0);
-      last_end_pos = (0, 0);
-    }
 
 let white_pieces =
   {
@@ -47,6 +39,8 @@ let black_pieces =
     bishop = "♝";
     pawn = "♟︎";
   }
+
+type board = piece array array
 
 let board =
   [|
@@ -132,6 +126,19 @@ let board =
     |];
   |]
 
+(**************************** End initialization. *****************************)
+
+(* Keep track of the last move made on the board. *)
+let last_move : last_move ref =
+  ref
+    {
+      last_piece =
+        { piece_type = Blank; piece_color = White; piece_pos = (0, 0) };
+      last_start_pos = (0, 0);
+      last_end_pos = (0, 0);
+    }
+
+(* Helper function to print the board. *)
 let print_board board =
   for i = 0 to 7 do
     print_string "\n------------------------------------\n";
@@ -168,6 +175,7 @@ let print_board board =
      ------------------------------------\n\
     \   | a | b | c | d | e | f | g | h |\n"
 
+(* Helper function to print a tuple. *)
 let print_tuple (x, y) =
   print_string "(";
   print_int x;
@@ -201,7 +209,7 @@ let is_en_passant_move attacking_pawn last_move end_pos board =
   && board.(last_end_row).(last_end_col).piece_color
      <> attacking_pawn.piece_color
 
-(* Helper function to check if move is a pawn promotion*)
+(* Helper function to check if move is a pawn promotion. *)
 let is_pawn_promotion attacking_pawn end_pos board =
   let is_pawn = attacking_pawn.piece_type = Pawn in
   let end_row, _ = end_pos in
@@ -211,14 +219,15 @@ let is_pawn_promotion attacking_pawn end_pos board =
   | Black when is_pawn -> end_row = 7
   | _ -> false
 
-(* Helper function to update the board and last move *)
+(* Helper function to update the board and last move. *)
 let update_board_and_last_move p start_pos end_pos new_board =
   last_move :=
     { last_piece = p; last_start_pos = start_pos; last_end_pos = end_pos };
   board_set p end_pos new_board
 
-let rec ask_match_choice a =
-  print_string "Enter a valid piece type to promote to: ";
+(* Helper function to determine allotted promotion piece. *)
+let rec ask_match_choice _ =
+  print_string "\nEnter a valid piece type to promote to: ";
   let choice = read_line () in
   let lower = String.lowercase_ascii choice in
   match lower with
@@ -229,22 +238,26 @@ let rec ask_match_choice a =
   | _ -> ask_match_choice ()
 
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
-let make_move (move : string) (curr_game_state : piece array array)
-    (turn : color) : piece array array * bool =
+let make_move (move : string) (curr_game_state : board) (turn : color) :
+    board * bool =
+  (* Parse the given move. *)
   let start_pos = position_of_string (String.sub move 0 2) in
   let end_pos = position_of_string (String.sub move 3 2) in
   let p = piece_at_pos start_pos curr_game_state in
 
+  (* Check if move is valid. *)
   if
     (within_bounds end_pos && within_bounds start_pos)
     && valid_move curr_game_state p end_pos turn !last_move
   then
+    (* Set the start position to blank. *)
     let new_board =
       board_set (make_piece Blank None start_pos) start_pos curr_game_state
     in
 
+    (* Check if move is en passant move. *)
     if is_en_passant_move p !last_move end_pos curr_game_state then begin
-      print_string "was enpes";
+      print_string "enpassant move occurred\n";
       let end_row, end_col = end_pos in
       let captured_pawn_row =
         if p.piece_color = White then end_row + 1 else end_row - 1
@@ -258,25 +271,32 @@ let make_move (move : string) (curr_game_state : piece array array)
           new_board_with_captured_pawn
       in
       (final_board, true)
+      (* Check if move is pawn promotion. *)
     end
     else if is_pawn_promotion p end_pos board then begin
-      print_string "pawn promotion \n";
+      let new_board_with_captured_piece =
+        board_set
+          (make_piece p.piece_type p.piece_color end_pos)
+          end_pos curr_game_state
+      in
+      print_string "pawn promotion occurred\nHere is the current game state.\n";
+      print_board board;
       let piece_type = ask_match_choice () in
       let color = p.piece_color in
       let final_board =
         update_board_and_last_move
           (make_piece piece_type color end_pos)
-          start_pos end_pos new_board
+          start_pos end_pos new_board_with_captured_piece
       in
       (final_board, true)
     end
     else (
-      print_string "was valid";
+      print_string "valid move made\n";
       let final_board =
         update_board_and_last_move p start_pos end_pos new_board
       in
       (final_board, true))
   else begin
-    print_endline "illegal move";
+    print_endline "illegal move. try again.";
     (curr_game_state, false)
   end

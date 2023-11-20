@@ -1,5 +1,8 @@
 open Pieces
 
+(* Dedup this later. Type also defined in board. *)
+type board = piece array array
+
 type last_move = {
   last_piece : piece;
   last_start_pos : int * int;
@@ -7,7 +10,7 @@ type last_move = {
 }
 
 (* If testing is true, alternating turns are not enforced. *)
-let testing = false
+let testing = true
 
 (* Given the chosen piece, suggested move, and game board state, we must verify
    that the move is a valid one. There are three checks that must be made: (1)
@@ -31,7 +34,7 @@ let within_bounds (x, y) : bool = not (x < 0 || x > 7 || y < 0 || y > 7)
 
 (* Helper: Determine the piece at a specific position based on the game
    board. *)
-let piece_at_pos (pos : int * int) (board : piece array array) : piece =
+let piece_at_pos (pos : int * int) (board : board) : piece =
   let x, y = pos in
   let row = Array.get board x in
   let p = Array.get row y in
@@ -53,7 +56,7 @@ let string_of_piece_type piece_type =
 
 (* Helper function to determine if path is clear for linear movements (used for
    bishop and rook). *)
-let rec check_path (board : piece array array) (step : int * int)
+let rec check_path (board : board) (step : int * int)
     (current_pos : int * int) (end_pos : int * int) atk_piece_color =
   let next_x, next_y =
     (fst current_pos + fst step, snd current_pos + snd step)
@@ -144,7 +147,7 @@ let check_king atk_piece def_piece =
   end
 
 (* 2. d) check valid move for Rook *)
-let check_rook (board : piece array array) atk_piece def_piece =
+let check_rook (board : board) atk_piece def_piece =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
 
@@ -158,7 +161,7 @@ let check_rook (board : piece array array) atk_piece def_piece =
   else false
 
 (* 2. e) check valid move for Bishop *)
-let check_bishop (board : piece array array) atk_piece def_piece =
+let check_bishop (board : board) atk_piece def_piece =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
 
@@ -173,7 +176,7 @@ let check_queen board atk_piece def_piece =
   check_rook board atk_piece def_piece || check_bishop board atk_piece def_piece
 
 (* 3. Check whether a move is valid for a given piece *)
-let valid_move (board : piece array array) (atk_piece : piece)
+let valid_move (board : board) (atk_piece : piece)
     (move : int * int) (turn : color) (last_move : last_move) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
