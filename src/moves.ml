@@ -136,6 +136,60 @@ let check_bishop (board : piece array array) atk_piece def_piece =
 let check_queen board atk_piece def_piece =
   check_rook board atk_piece def_piece || check_bishop board atk_piece def_piece
 
+let pawn_checking board (x, y) opp =
+  let dir = if opp = White then -1 else 1 in
+  if y + dir < 0 || y + dir > 7 then false
+  else
+    (x - 1 >= 0
+    &&
+    let p = piece_at_pos (x - 1, y + dir) board in
+    get_piece_color p = opp && get_piece_type p = Pawn)
+    || x + 1 <= 7
+       &&
+       let p = piece_at_pos (x + 1, y + dir) board in
+       get_piece_color p = opp && get_piece_type p = Pawn
+
+let knight_checking board (x, y) opp loc =
+  let x', y' = (x + fst loc, y + snd loc) in
+  x' >= 0 && y' >= 0 && x' <= 7 && y' <= 7
+  &&
+  let p = piece_at_pos (x', y') board in
+  get_piece_color p = opp && get_piece_type p = Knight
+
+let rec check_line board (x, y) opp dir =
+  let adjx = x + fst dir in
+  let adjy = y + snd dir in
+  if adjx < 0 || adjx > 7 || adjy < 0 || adjy > 7 then false
+  else
+    let p = piece_at_pos (adjx, adjy) board in
+    if abs (fst dir) = abs (snd dir) && get_piece_type p = Bishop then
+      get_piece_color p = opp
+    else if abs (fst dir) <> abs (snd dir) && get_piece_type p = Rook then
+      get_piece_color p = opp
+    else if get_piece_type p = Blank then check_line board (adjx, adjy) opp dir
+    else false
+
+let under_check board turn king_loc =
+  let opp = if turn = Black then White else Black in
+  let x, y = if turn = White then fst king_loc else snd king_loc in
+  pawn_checking board (x, y) opp
+  || knight_checking board (x, y) opp (1, 2)
+  || knight_checking board (x, y) opp (1, -2)
+  || knight_checking board (x, y) opp (-1, 2)
+  || knight_checking board (x, y) opp (-1, -2)
+  || knight_checking board (x, y) opp (2, 1)
+  || knight_checking board (x, y) opp (2, -1)
+  || knight_checking board (x, y) opp (-2, 1)
+  || knight_checking board (x, y) opp (-2, -1)
+  || check_line board (x, y) opp (1, 1)
+  || check_line board (x, y) opp (1, -1)
+  || check_line board (x, y) opp (-1, 1)
+  || check_line board (x, y) opp (-1, -1)
+  || check_line board (x, y) opp (0, 1)
+  || check_line board (x, y) opp (0, -1)
+  || check_line board (x, y) opp (1, 0)
+  || check_line board (x, y) opp (-1, 0)
+
 (* 3. Check whether a move is valid for a given piece *)
 let valid_move board atk_piece move turn : bool =
   let check_turn_color atk_piece turn : bool =
@@ -148,7 +202,7 @@ let valid_move board atk_piece move turn : bool =
     match atk_piece.piece_type with
     | Blank -> false
     | Pawn ->
-        if get_piece_colour atk_piece = Black then
+        if get_piece_color atk_piece = Black then
           check_pawn atk_piece def_piece
             (let a = 1 in
              a)

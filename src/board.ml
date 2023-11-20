@@ -1,8 +1,6 @@
 open Pieces
 open Moves
 
-
-
 type white_pieces = {
   king : string;
   queen : string;
@@ -179,7 +177,8 @@ let board_set piece pos curr =
 
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 let make_move (m : string) (curr_game_state : piece array array) (turn : color)
-    : piece array array * bool =
+    (king_loc : (int * int) * (int * int)) :
+    piece array array * bool * ((int * int) * (int * int)) =
   let start_pos = position_of_string (String.sub m 0 2) in
   let end_pos = position_of_string (String.sub m 3 2) in
   let p = piece_at_pos start_pos curr_game_state in
@@ -195,9 +194,17 @@ let make_move (m : string) (curr_game_state : piece array array) (turn : color)
     in
     (* Set the piece to the end position. *)
     let final_board = board_set p end_pos new_board in
-    (final_board, true)
+    let king_loc =
+      if get_piece_type p = King then
+        if get_piece_color p = White then (end_pos, snd king_loc)
+        else (fst king_loc, end_pos)
+      else king_loc
+    in
+    if under_check final_board (if turn = White then Black else White) king_loc
+    then print_endline "\nCHECK";
+    (final_board, true, king_loc)
   end
   else begin
     print_endline "illegal move";
-    (curr_game_state, false)
+    (curr_game_state, false, king_loc)
   end
