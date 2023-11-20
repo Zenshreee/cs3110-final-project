@@ -196,11 +196,16 @@ let is_en_passant_move attacking_pawn last_move end_pos board =
   && abs (start_col - end_col) = 1
   && start_row = last_end_row
   && abs (end_row - last_end_row) = 1
-  && board.(last_end_row).(last_end_col).piece_type = Pawn
   && ((attacking_pawn.piece_color = White && start_row = 3 && end_row = 2)
      || (attacking_pawn.piece_color = Black && start_row = 4 && end_row = 5))
   && board.(last_end_row).(last_end_col).piece_color
      <> attacking_pawn.piece_color
+
+(* Helper function to update the board and last move *)
+let update_board_and_last_move p start_pos end_pos new_board =
+  last_move :=
+    { last_piece = p; last_start_pos = start_pos; last_end_pos = end_pos };
+  board_set p end_pos new_board
 
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 let make_move (move : string) (curr_game_state : piece array array)
@@ -212,29 +217,31 @@ let make_move (move : string) (curr_game_state : piece array array)
   if
     (within_bounds end_pos && within_bounds start_pos)
     && valid_move curr_game_state p end_pos turn !last_move
-  then begin
-    last_move :=
-      { last_piece = p; last_start_pos = start_pos; last_end_pos = end_pos };
+  then
     let new_board =
       board_set (make_piece Blank None start_pos) start_pos curr_game_state
     in
 
-    let end_row, end_col = end_pos in
-
-    if is_en_passant_move p !last_move end_pos curr_game_state then
+    if is_en_passant_move p !last_move end_pos curr_game_state then begin
+      let end_row, end_col = end_pos in
       let captured_pawn_row =
         if p.piece_color = White then end_row + 1 else end_row - 1
       in
       let captured_pawn = make_piece Blank None (captured_pawn_row, end_col) in
-      let new_board =
+      let new_board_with_captured_pawn =
         board_set captured_pawn (captured_pawn_row, end_col) new_board
       in
-      let final_board = board_set p end_pos new_board in
+      let final_board =
+        update_board_and_last_move p start_pos end_pos
+          new_board_with_captured_pawn
+      in
       (final_board, true)
+    end
     else
-      let final_board = board_set p end_pos new_board in
+      let final_board =
+        update_board_and_last_move p start_pos end_pos new_board
+      in
       (final_board, true)
-  end
   else begin
     print_endline "illegal move";
     (curr_game_state, false)
