@@ -189,9 +189,8 @@ let board_set piece pos curr =
   let z, w = pos in
   let row = curr.(z) in
   let p = set_piece_pos piece pos in
-  let _ = row.(w) <- p in
-  let _ = curr.(z) <- row in
-  curr
+  row.(w) <- p;
+  curr.(z) <- row
 
 (* Helper function to check if move is en_passant move. *)
 let is_en_passant_move attacking_pawn last_move end_pos board =
@@ -255,55 +254,47 @@ let make_move (move : string) (curr_game_state : piece array array)
     && valid_move curr_game_state p end_pos turn !last_move
   then (
     (* Set the start position to blank. *)
-    let new_board =
-      board_set (make_piece Blank None start_pos) start_pos curr_game_state
-    in
-
-    let final_board =
+    board_set (make_piece Blank None start_pos) start_pos curr_game_state;
+    if
       (* Check if move is en passant move. *)
-      if is_en_passant_move p !last_move end_pos curr_game_state then begin
-        print_string "enpassant move occurred\n";
-        let end_row, end_col = end_pos in
-        let captured_pawn_row =
-          if p.piece_color = White then end_row + 1 else end_row - 1
-        in
-        let captured_pawn =
-          make_piece Blank None (captured_pawn_row, end_col)
-        in
-        let new_board_with_captured_pawn =
-          board_set captured_pawn (captured_pawn_row, end_col) new_board
-        in
-        update_board_and_last_move p start_pos end_pos
-          new_board_with_captured_pawn
-      end
-      else if is_pawn_promotion p end_pos board then begin
-        let new_board_with_captured_piece =
-          board_set
-            (make_piece p.piece_type p.piece_color end_pos)
-            end_pos curr_game_state
-        in
-        print_string
-          "pawn promotion occurred\nHere is the current game state.\n";
-        print_board board;
-        let piece_type = ask_match_choice () in
-        let color = p.piece_color in
-        update_board_and_last_move
-          (make_piece piece_type color end_pos)
-          start_pos end_pos new_board_with_captured_piece
-      end
-      else (
-        print_string "valid move made\n";
-        update_board_and_last_move p start_pos end_pos new_board)
-    in
+      is_en_passant_move p !last_move end_pos curr_game_state
+    then begin
+      print_string "enpassant move occurred\n";
+      let end_row, end_col = end_pos in
+      let captured_pawn_row =
+        if p.piece_color = White then end_row + 1 else end_row - 1
+      in
+      let captured_pawn = make_piece Blank None (captured_pawn_row, end_col) in
+      board_set captured_pawn (captured_pawn_row, end_col) curr_game_state;
+      update_board_and_last_move p start_pos end_pos curr_game_state
+    end
+    else if is_pawn_promotion p end_pos board then begin
+      board_set
+        (make_piece p.piece_type p.piece_color end_pos)
+        end_pos curr_game_state;
+      print_string "pawn promotion occurred\nHere is the current game state.\n";
+      print_board board;
+      let piece_type = ask_match_choice () in
+      let color = p.piece_color in
+      update_board_and_last_move
+        (make_piece piece_type color end_pos)
+        start_pos end_pos curr_game_state
+    end
+    else (
+      print_string "valid move made\n";
+      update_board_and_last_move p start_pos end_pos curr_game_state);
     let king_loc =
       if get_piece_type p = King then
         if get_piece_color p = White then (end_pos, snd king_loc)
         else (fst king_loc, end_pos)
       else king_loc
     in
-    if under_check final_board (if turn = White then Black else White) king_loc
+    if
+      under_check curr_game_state
+        (if turn = White then Black else White)
+        king_loc
     then print_endline "\nCHECK";
-    (final_board, true, king_loc))
+    (curr_game_state, true, king_loc))
   else begin
     print_endline "illegal move. try again.";
     (curr_game_state, false, king_loc)
