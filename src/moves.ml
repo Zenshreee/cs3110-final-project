@@ -62,11 +62,10 @@ let rec check_path (board : board) (step : int * int)
     (fst current_pos + fst step, snd current_pos + snd step)
   in
   if next_x = fst end_pos && next_y = snd end_pos then
+    board.(next_x).(next_y).piece_color <> atk_piece_color
+  else
     board.(next_x).(next_y).piece_type = Blank
-    || board.(next_x).(next_y).piece_color <> atk_piece_color
-  else if board.(next_x).(next_y).piece_type = Blank then
-    check_path board step (next_x, next_y) end_pos atk_piece_color
-  else false
+    && check_path board step (next_x, next_y) end_pos atk_piece_color
 
 (* Helper function to check if move is en_passant move. *)
 let is_en_passant_move attacking_pawn last_move end_pos board =
@@ -174,6 +173,68 @@ let check_bishop (board : board) atk_piece def_piece =
 (* 2. e) check valid move for Queen *)
 let check_queen board atk_piece def_piece =
   check_rook board atk_piece def_piece || check_bishop board atk_piece def_piece
+
+(* Check if opponent's pawn is threatening king *)
+let pawn_checking board (x, y) opp =
+  let dir = if opp = White then -1 else 1 in
+  if y + dir < 0 || y + dir > 7 then false
+  else
+    (x - 1 >= 0
+    &&
+    let p = piece_at_pos (x - 1, y + dir) board in
+    get_piece_color p = opp && get_piece_type p = Pawn)
+    || x + 1 <= 7
+       &&
+       let p = piece_at_pos (x + 1, y + dir) board in
+       get_piece_color p = opp && get_piece_type p = Pawn
+
+(* Check if opponent's knight is threatening king *)
+let knight_checking board (x, y) opp loc =
+  let x', y' = (x + fst loc, y + snd loc) in
+  x' >= 0 && y' >= 0 && x' <= 7 && y' <= 7
+  &&
+  let p = piece_at_pos (x', y') board in
+  get_piece_color p = opp && get_piece_type p = Knight
+
+(* Check if opponent's bishop, rook, or queen is threatening king *)
+let rec check_line board (x, y) opp dir =
+  let adjx = x + fst dir in
+  let adjy = y + snd dir in
+  if adjx < 0 || adjx > 7 || adjy < 0 || adjy > 7 then false
+  else
+    let p = piece_at_pos (adjx, adjy) board in
+    if
+      abs (fst dir) = abs (snd dir)
+      && (get_piece_type p = Bishop || get_piece_type p = Queen)
+    then get_piece_color p = opp
+    else if
+      abs (fst dir) <> abs (snd dir)
+      && (get_piece_type p = Rook || get_piece_type p = Queen)
+    then get_piece_color p = opp
+    else if get_piece_type p = Blank then check_line board (adjx, adjy) opp dir
+    else false
+
+(* Check if opponent's king placed under check *)
+let under_check board turn king_loc =
+  let opp = if turn = Black then White else Black in
+  let x, y = if turn = White then fst king_loc else snd king_loc in
+  pawn_checking board (x, y) opp
+  || knight_checking board (x, y) opp (1, 2)
+  || knight_checking board (x, y) opp (1, -2)
+  || knight_checking board (x, y) opp (-1, 2)
+  || knight_checking board (x, y) opp (-1, -2)
+  || knight_checking board (x, y) opp (2, 1)
+  || knight_checking board (x, y) opp (2, -1)
+  || knight_checking board (x, y) opp (-2, 1)
+  || knight_checking board (x, y) opp (-2, -1)
+  || check_line board (x, y) opp (1, 1)
+  || check_line board (x, y) opp (1, -1)
+  || check_line board (x, y) opp (-1, 1)
+  || check_line board (x, y) opp (-1, -1)
+  || check_line board (x, y) opp (0, 1)
+  || check_line board (x, y) opp (0, -1)
+  || check_line board (x, y) opp (1, 0)
+  || check_line board (x, y) opp (-1, 0)
 
 (* 3. Check whether a move is valid for a given piece *)
 let valid_move (board : board) (atk_piece : piece)

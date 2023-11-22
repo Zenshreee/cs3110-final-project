@@ -1,7 +1,9 @@
 open Pieces
 open Moves
 
+
 (************************ Initialize pieces and board. ************************)
+
 type white_pieces = {
   king : string;
   queen : string;
@@ -238,11 +240,14 @@ let rec ask_match_choice _ =
   | _ -> ask_match_choice ()
 
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
-let make_move (move : string) (curr_game_state : board) (turn : color) :
-    board * bool =
+
+let make_move (move : string) (curr_game_state : piece array array) (turn : color)
+    (king_loc : (int * int) * (int * int)) :
+    board * bool * ((int * int) * (int * int)) =
   (* Parse the given move. *)
   let start_pos = position_of_string (String.sub move 0 2) in
   let end_pos = position_of_string (String.sub move 3 2) in
+
   let p = piece_at_pos start_pos curr_game_state in
 
   (* Check if move is valid. *)
@@ -270,7 +275,15 @@ let make_move (move : string) (curr_game_state : board) (turn : color) :
         update_board_and_last_move p start_pos end_pos
           new_board_with_captured_pawn
       in
-      (final_board, true)
+      let king_loc =
+        if get_piece_type p = King then
+          if get_piece_color p = White then (end_pos, snd king_loc)
+          else (fst king_loc, end_pos)
+        else king_loc
+      in
+      if under_check final_board (if turn = White then Black else White) king_loc
+      then print_endline "\nCHECK";
+      (final_board, true, king_loc)
       (* Check if move is pawn promotion. *)
     end
     else if is_pawn_promotion p end_pos board then begin
@@ -288,15 +301,31 @@ let make_move (move : string) (curr_game_state : board) (turn : color) :
           (make_piece piece_type color end_pos)
           start_pos end_pos new_board_with_captured_piece
       in
-      (final_board, true)
+      let king_loc =
+        if get_piece_type p = King then
+          if get_piece_color p = White then (end_pos, snd king_loc)
+          else (fst king_loc, end_pos)
+        else king_loc
+      in
+      if under_check final_board (if turn = White then Black else White) king_loc
+      then print_endline "\nCHECK";
+      (final_board, true, king_loc)
     end
     else (
       print_string "valid move made\n";
       let final_board =
         update_board_and_last_move p start_pos end_pos new_board
+      in 
+      let king_loc =
+        if get_piece_type p = King then
+          if get_piece_color p = White then (end_pos, snd king_loc)
+          else (fst king_loc, end_pos)
+        else king_loc
       in
-      (final_board, true))
+      if under_check final_board (if turn = White then Black else White) king_loc
+      then print_endline "\nCHECK";
+      (final_board, true, king_loc))
   else begin
     print_endline "illegal move. try again.";
-    (curr_game_state, false)
+    (curr_game_state, false, king_loc)
   end
