@@ -1,9 +1,11 @@
 open Chess
 open Pieces
+open Moves
 open Board
 
 (* [GameEnd] is an exception.*)
 exception GameEnd
+
 
 let curr_board = board
 let king_loc = ((7, 4), (0, 4))
@@ -43,8 +45,6 @@ let rec repl state king_loc : unit =
 
 (** black_winner is var of type [string]. It represents graphic displayed when
     black wins.*)
-
-(* let () = print_board init_board *)
 
 (*********** command line interface ***********)
 let () =

@@ -1,7 +1,16 @@
 open Pieces
 
+(* Dedup this later. Type also defined in board. *)
+type board = piece array array
+
+type last_move = {
+  last_piece : piece;
+  last_start_pos : int * int;
+  last_end_pos : int * int;
+}
+
 (* If testing is true, alternating turns are not enforced. *)
-let testing = false
+let testing = true
 
 (* Given the chosen piece, suggested move, and game board state, we must verify
    that the move is a valid one. There are three checks that must be made: (1)
@@ -25,7 +34,7 @@ let within_bounds (x, y) : bool = not (x < 0 || x > 7 || y < 0 || y > 7)
 
 (* Helper: Determine the piece at a specific position based on the game
    board. *)
-let piece_at_pos (pos : int * int) (board : piece array array) : piece =
+let piece_at_pos (pos : int * int) (board : board) : piece =
   let x, y = pos in
   let row = Array.get board x in
   let p = Array.get row y in
@@ -47,7 +56,7 @@ let string_of_piece_type piece_type =
 
 (* Helper function to determine if path is clear for linear movements (used for
    bishop and rook). *)
-let rec check_path (board : piece array array) (step : int * int)
+let rec check_path (board : board) (step : int * int)
     (current_pos : int * int) (end_pos : int * int) atk_piece_color =
   let next_x, next_y =
     (fst current_pos + fst step, snd current_pos + snd step)
@@ -58,26 +67,53 @@ let rec check_path (board : piece array array) (step : int * int)
     board.(next_x).(next_y).piece_type = Blank
     && check_path board step (next_x, next_y) end_pos atk_piece_color
 
+(* Helper function to check if move is en_passant move. *)
+let is_en_passant_move attacking_pawn last_move end_pos board =
+  let start_row, start_col = attacking_pawn.piece_pos in
+  let end_row, end_col = end_pos in
+  let last_start_row, last_start_col = last_move.last_start_pos in
+  let last_end_row, last_end_col = last_move.last_end_pos in
+
+  last_move.last_piece.piece_type = Pawn
+  && abs (last_start_row - last_end_row) = 2
+  && abs (start_col - end_col) = 1
+  && start_row = last_end_row
+  && abs (end_row - last_end_row) = 1
+  && board.(last_end_row).(last_end_col).piece_type = Pawn
+  && ((attacking_pawn.piece_color = White && start_row = 3 && end_row = 2)
+     || (attacking_pawn.piece_color = Black && start_row = 4 && end_row = 5))
+  && board.(last_end_row).(last_end_col).piece_color
+     <> attacking_pawn.piece_color
+
 (* 2. a) check valid move for Pawn *)
-let check_pawn atk_piece def_piece dir =
-  let x, y = atk_piece.piece_pos in
-  let x', y' = def_piece.piece_pos in
-  if atk_piece.piece_pos = def_piece.piece_pos then false
-  else begin
-    if x + (2 * dir) = x' then
-      if dir = 1 && x = 1 && def_piece.piece_type = Blank then true
-      else if dir = -1 && x = 6 && def_piece.piece_type = Blank then true
-      else false
-    else if x + dir = x' then
-      if y = y' && def_piece.piece_type = Blank then true
-      else if
-        (y = y' + 1 || y = y' - 1)
-        && def_piece.piece_color <> None
-        && def_piece.piece_color <> atk_piece.piece_color
-      then true
-      else false
-    else false
-  end
+let check_pawn attacking_piece defending_piece (last_move : last_move) board =
+  let start_row, start_col = attacking_piece.piece_pos in
+  let target_row, target_col = defending_piece.piece_pos in
+  let color = attacking_piece.piece_color in
+  let direction = target_row - start_row in
+
+  (* Determine direction based on row difference *)
+  if direction > 0 && color <> Black then false
+  else if direction < 0 && color <> White then false
+  else if attacking_piece.piece_pos = defending_piece.piece_pos then false
+  else
+    match direction with
+    | (1 | -1)
+      when is_en_passant_move attacking_piece last_move
+             defending_piece.piece_pos board -> true
+    | 1 | -1 ->
+        (* Single step forward *)
+        (target_col = start_col && defending_piece.piece_type = Blank)
+        || abs (target_col - start_col) = 1
+           && defending_piece.piece_color <> None
+           && defending_piece.piece_color <> attacking_piece.piece_color
+    | 2 when start_row = 1 && target_col = start_col ->
+        (* Black pawn's initial two-step move *)
+        defending_piece.piece_type = Blank
+    | -2 when start_row = 6 && target_col = start_col ->
+        (* White pawn's initial two-step move *)
+        defending_piece.piece_type = Blank
+    | _ -> false
 
 (* 2. b) check valid move for Knight *)
 let check_knight atk_piece def_piece =
@@ -86,6 +122,7 @@ let check_knight atk_piece def_piece =
   if atk_piece.piece_pos = def_piece.piece_pos then false
   else begin
     if
+      (* All of knight's possible L-shaped moves *)
       (((x = x' + 2 || x = x' - 2) && (y = y' + 1 || y = y' - 1))
       || ((x = x' + 1 || x = x' - 1) && (y = y' + 2 || y = y' - 2)))
       && def_piece.piece_color <> atk_piece.piece_color
@@ -100,6 +137,7 @@ let check_king atk_piece def_piece =
   if atk_piece.piece_pos = def_piece.piece_pos then false
   else begin
     if
+      (* All of king's possible one-step moves *)
       (x = x' + 1 || x = x' - 1 || x = x')
       && (y = y' + 1 || y = y' - 1 || y = y')
       && def_piece.piece_color <> atk_piece.piece_color
@@ -108,7 +146,7 @@ let check_king atk_piece def_piece =
   end
 
 (* 2. d) check valid move for Rook *)
-let check_rook (board : piece array array) atk_piece def_piece =
+let check_rook (board : board) atk_piece def_piece =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
 
@@ -122,7 +160,7 @@ let check_rook (board : piece array array) atk_piece def_piece =
   else false
 
 (* 2. e) check valid move for Bishop *)
-let check_bishop (board : piece array array) atk_piece def_piece =
+let check_bishop (board : board) atk_piece def_piece =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
 
@@ -199,7 +237,8 @@ let under_check board turn king_loc =
   || check_line board (x, y) opp (-1, 0)
 
 (* 3. Check whether a move is valid for a given piece *)
-let valid_move board atk_piece move turn : bool =
+let valid_move (board : board) (atk_piece : piece)
+    (move : int * int) (turn : color) (last_move : last_move) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
   in
@@ -209,15 +248,7 @@ let valid_move board atk_piece move turn : bool =
     let def_piece = piece_at_pos move board in
     match atk_piece.piece_type with
     | Blank -> false
-    | Pawn ->
-        if get_piece_color atk_piece = Black then
-          check_pawn atk_piece def_piece
-            (let a = 1 in
-             a)
-        else
-          check_pawn atk_piece def_piece
-            (let a = -1 in
-             a)
+    | Pawn -> check_pawn atk_piece def_piece last_move board
     | Knight -> check_knight atk_piece def_piece
     | King -> check_king atk_piece def_piece
     | Rook -> check_rook board atk_piece def_piece
