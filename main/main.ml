@@ -6,8 +6,9 @@ open Board
 (* [GameEnd] is an exception.*)
 exception GameEnd
 
-
 let curr_board = board
+
+(* Initial king placement *)
 let king_loc = ((7, 4), (0, 4))
 
 (* read-eval-print loop *)

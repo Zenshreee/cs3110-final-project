@@ -10,7 +10,7 @@ type last_move = {
 }
 
 (* If testing is true, alternating turns are not enforced. *)
-let testing = true
+let testing = false
 
 (* Given the chosen piece, suggested move, and game board state, we must verify
    that the move is a valid one. There are three checks that must be made: (1)
@@ -56,8 +56,8 @@ let string_of_piece_type piece_type =
 
 (* Helper function to determine if path is clear for linear movements (used for
    bishop and rook). *)
-let rec check_path (board : board) (step : int * int)
-    (current_pos : int * int) (end_pos : int * int) atk_piece_color =
+let rec check_path (board : board) (step : int * int) (current_pos : int * int)
+    (end_pos : int * int) atk_piece_color =
   let next_x, next_y =
     (fst current_pos + fst step, snd current_pos + snd step)
   in
@@ -237,8 +237,8 @@ let under_check board turn king_loc =
   || check_line board (x, y) opp (-1, 0)
 
 (* 3. Check whether a move is valid for a given piece *)
-let valid_move (board : board) (atk_piece : piece)
-    (move : int * int) (turn : color) (last_move : last_move) : bool =
+let valid_move (board : board) (atk_piece : piece) (move : int * int)
+    (turn : color) (last_move : last_move) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
   in
