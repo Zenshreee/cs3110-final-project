@@ -254,12 +254,13 @@ let make_move (move : string) (curr_game_state : piece array array)
     && valid_move curr_game_state p end_pos turn !last_move
   then (
     (* Set the start position to blank. *)
+    let prev = !last_move in
     board_set (make_piece Blank None start_pos) start_pos curr_game_state;
     if
       (* Check if move is en passant move. *)
       is_en_passant_move p !last_move end_pos curr_game_state
     then begin
-      print_string "enpassant move occurred\n";
+      print_string "En passant move occurred\n";
       let end_row, end_col = end_pos in
       let captured_pawn_row =
         if p.piece_color = White then end_row + 1 else end_row - 1
@@ -272,7 +273,7 @@ let make_move (move : string) (curr_game_state : piece array array)
       board_set
         (make_piece p.piece_type p.piece_color end_pos)
         end_pos curr_game_state;
-      print_string "pawn promotion occurred\nHere is the current game state.\n";
+      print_string "Pawn promotion occurred\nHere is the current game state.\n";
       print_board board;
       let piece_type = ask_match_choice () in
       let color = p.piece_color in
@@ -280,9 +281,8 @@ let make_move (move : string) (curr_game_state : piece array array)
         (make_piece piece_type color end_pos)
         start_pos end_pos curr_game_state
     end
-    else (
-      print_string "valid move made\n";
-      update_board_and_last_move p start_pos end_pos curr_game_state);
+    else update_board_and_last_move p start_pos end_pos curr_game_state;
+
     let king_loc =
       if get_piece_type p = King then
         if get_piece_color p = White then (end_pos, snd king_loc)
@@ -294,8 +294,17 @@ let make_move (move : string) (curr_game_state : piece array array)
         (if turn = White then Black else White)
         king_loc
     then print_endline "\nCHECK";
-    (curr_game_state, true, king_loc))
+
+    if under_check curr_game_state turn king_loc then (
+      last_move := prev;
+      print_endline "Under check. Try again.";
+      board_set (make_piece Blank None end_pos) end_pos curr_game_state;
+      board_set p start_pos curr_game_state;
+      (curr_game_state, false, king_loc))
+    else (
+      print_string "Valid move made\n";
+      (curr_game_state, true, king_loc)))
   else begin
-    print_endline "illegal move. try again.";
+    print_endline "Illegal move. Try again.";
     (curr_game_state, false, king_loc)
   end
