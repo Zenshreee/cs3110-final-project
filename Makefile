@@ -1,5 +1,4 @@
 build:
-	dune clean
 	dune build
 
 utop:

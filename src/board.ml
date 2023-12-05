@@ -127,6 +127,10 @@ let board =
     |];
   |]
 
+let king_moved = ref (false, false)
+let krook_moved = ref (false, false)
+let qrook_moved = ref (false, false)
+
 (**************************** End initialization. *****************************)
 
 (* Keep track of the last move made on the board. *)
@@ -247,11 +251,15 @@ let make_move (move : string) (curr_game_state : piece array array)
   let end_pos = position_of_string (String.sub move 3 2) in
 
   let p = piece_at_pos start_pos curr_game_state in
+  let k_move = if turn = White then fst !king_moved else snd !king_moved in
+  let kr_move = if turn = White then fst !krook_moved else snd !krook_moved in
+  let qr_move = if turn = White then fst !qrook_moved else snd !qrook_moved in
 
   (* Check if move is valid. *)
   if
     (within_bounds end_pos && within_bounds start_pos)
-    && valid_move curr_game_state p end_pos turn !last_move
+    && valid_move curr_game_state p end_pos turn !last_move k_move kr_move
+         qr_move
   then (
     (* Set the start position to blank. *)
     let prev = !last_move in
@@ -292,10 +300,13 @@ let make_move (move : string) (curr_game_state : piece array array)
     if
       under_check curr_game_state
         (if turn = White then Black else White)
-        king_loc
+        (if turn = White then snd king_loc else fst king_loc)
     then print_endline "\nCHECK";
 
-    if under_check curr_game_state turn king_loc then (
+    if
+      under_check curr_game_state turn
+        (if turn = White then fst king_loc else snd king_loc)
+    then (
       last_move := prev;
       print_endline "Under check. Try again.";
       board_set (make_piece Blank None end_pos) end_pos curr_game_state;
@@ -303,6 +314,41 @@ let make_move (move : string) (curr_game_state : piece array array)
       (curr_game_state, false, king_loc))
     else (
       print_string "Valid move made\n";
+      king_moved :=
+        ( (piece_at_pos (7, 4) board).piece_type <> King || fst !king_moved,
+          (piece_at_pos (0, 4) board).piece_type <> King || snd !king_moved );
+      krook_moved :=
+        ( (let p = piece_at_pos (7, 7) board in
+           p.piece_type <> Rook || p.piece_color <> White)
+          || fst !krook_moved,
+          (let p = piece_at_pos (0, 7) board in
+           p.piece_type <> Rook || p.piece_color <> Black)
+          || snd !krook_moved );
+      qrook_moved :=
+        ( (let p = piece_at_pos (7, 0) board in
+           p.piece_type <> Rook || p.piece_color <> White)
+          || fst !qrook_moved,
+          (let p = piece_at_pos (0, 0) board in
+           p.piece_type <> Rook || p.piece_color <> Black)
+          || snd !qrook_moved );
+      if p.piece_type = King && snd end_pos - snd start_pos = 2 then (
+        board_set
+          (make_piece Blank None (fst start_pos, 7))
+          (fst start_pos, 7)
+          board;
+        board_set
+          (make_piece Rook turn (fst start_pos, snd end_pos - 1))
+          (fst start_pos, snd end_pos - 1)
+          board);
+      if p.piece_type = King && snd end_pos - snd start_pos = -2 then (
+        board_set
+          (make_piece Blank None (fst start_pos, 0))
+          (fst start_pos, 0)
+          board;
+        board_set
+          (make_piece Rook turn (fst start_pos, snd end_pos + 1))
+          (fst start_pos, snd end_pos + 1)
+          board);
       (curr_game_state, true, king_loc)))
   else begin
     print_endline "Illegal move. Try again.";

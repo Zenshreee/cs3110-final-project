@@ -54,6 +54,68 @@ let string_of_piece_type piece_type =
   | King -> "King"
   | Blank -> "Blank"
 
+(* Check if opponent's pawn is threatening king *)
+let pawn_checking board (x, y) opp =
+  let dir = if opp = White then -1 else 1 in
+  if y + dir < 0 || y + dir > 7 then false
+  else
+    (x - 1 >= 0
+    &&
+    let p = piece_at_pos (x - 1, y + dir) board in
+    get_piece_color p = opp && get_piece_type p = Pawn)
+    || x + 1 <= 7
+       &&
+       let p = piece_at_pos (x + 1, y + dir) board in
+       get_piece_color p = opp && get_piece_type p = Pawn
+
+(* Check if opponent's knight is threatening king *)
+let knight_checking board (x, y) opp loc =
+  let x', y' = (x + fst loc, y + snd loc) in
+  x' >= 0 && y' >= 0 && x' <= 7 && y' <= 7
+  &&
+  let p = piece_at_pos (x', y') board in
+  get_piece_color p = opp && get_piece_type p = Knight
+
+(* Check if opponent's bishop, rook, or queen is threatening king *)
+let rec check_line board (x, y) opp dir =
+  let adjx = x + fst dir in
+  let adjy = y + snd dir in
+  if adjx < 0 || adjx > 7 || adjy < 0 || adjy > 7 then false
+  else
+    let p = piece_at_pos (adjx, adjy) board in
+    if
+      abs (fst dir) = abs (snd dir)
+      && (get_piece_type p = Bishop || get_piece_type p = Queen)
+    then get_piece_color p = opp
+    else if
+      abs (fst dir) <> abs (snd dir)
+      && (get_piece_type p = Rook || get_piece_type p = Queen)
+    then get_piece_color p = opp
+    else if get_piece_type p = Blank then check_line board (adjx, adjy) opp dir
+    else false
+
+(* Check if opponent's king placed under check *)
+let under_check board turn king_loc =
+  let opp = if turn = Black then White else Black in
+  let x, y = king_loc in
+  pawn_checking board (x, y) opp
+  || knight_checking board (x, y) opp (1, 2)
+  || knight_checking board (x, y) opp (1, -2)
+  || knight_checking board (x, y) opp (-1, 2)
+  || knight_checking board (x, y) opp (-1, -2)
+  || knight_checking board (x, y) opp (2, 1)
+  || knight_checking board (x, y) opp (2, -1)
+  || knight_checking board (x, y) opp (-2, 1)
+  || knight_checking board (x, y) opp (-2, -1)
+  || check_line board (x, y) opp (1, 1)
+  || check_line board (x, y) opp (1, -1)
+  || check_line board (x, y) opp (-1, 1)
+  || check_line board (x, y) opp (-1, -1)
+  || check_line board (x, y) opp (0, 1)
+  || check_line board (x, y) opp (0, -1)
+  || check_line board (x, y) opp (1, 0)
+  || check_line board (x, y) opp (-1, 0)
+
 (* Helper function to determine if path is clear for linear movements (used for
    bishop and rook). *)
 let rec check_path (board : board) (step : int * int) (current_pos : int * int)
@@ -131,17 +193,44 @@ let check_knight atk_piece def_piece =
   end
 
 (* 2. c) check valid move for King *)
-let check_king atk_piece def_piece =
+let check_king atk_piece def_piece turn board king_moved krook_moved qrook_moved
+    =
   let x, y = atk_piece.piece_pos in
   let x', y' = def_piece.piece_pos in
   if atk_piece.piece_pos = def_piece.piece_pos then false
   else begin
+    let king_side =
+      y = 4 && y' = 6
+      && ((turn = White && x = 7 && x' = 7) || (turn = Black && x = 0 && x' = 0))
+      && (not king_moved) && not krook_moved
+    in
+    let queen_side =
+      y = 4 && y' = 2
+      && ((turn = White && x = 7 && x' = 7) || (turn = Black && x = 0 && x' = 0))
+      && (not king_moved) && not qrook_moved
+    in
     if
       (* All of king's possible one-step moves *)
       (x = x' + 1 || x = x' - 1 || x = x')
       && (y = y' + 1 || y = y' - 1 || y = y')
       && def_piece.piece_color <> atk_piece.piece_color
     then true
+    else if king_side then
+      (piece_at_pos (x, y + 1) board).piece_type = Blank
+      && (piece_at_pos (x, y + 2) board).piece_type = Blank
+      && not
+           (under_check board turn (x, 4)
+           || under_check board turn (x, 5)
+           || under_check board turn (x, 6))
+    else if queen_side then
+      (piece_at_pos (x, y - 1) board).piece_type = Blank
+      && (piece_at_pos (x, y - 2) board).piece_type = Blank
+      && (piece_at_pos (x, y - 3) board).piece_type = Blank
+      && not
+           (under_check board turn (x, 4)
+           || under_check board turn (x, 3)
+           || under_check board turn (x, 2)
+           || under_check board turn (x, 1))
     else false
   end
 
@@ -174,71 +263,10 @@ let check_bishop (board : board) atk_piece def_piece =
 let check_queen board atk_piece def_piece =
   check_rook board atk_piece def_piece || check_bishop board atk_piece def_piece
 
-(* Check if opponent's pawn is threatening king *)
-let pawn_checking board (x, y) opp =
-  let dir = if opp = White then -1 else 1 in
-  if y + dir < 0 || y + dir > 7 then false
-  else
-    (x - 1 >= 0
-    &&
-    let p = piece_at_pos (x - 1, y + dir) board in
-    get_piece_color p = opp && get_piece_type p = Pawn)
-    || x + 1 <= 7
-       &&
-       let p = piece_at_pos (x + 1, y + dir) board in
-       get_piece_color p = opp && get_piece_type p = Pawn
-
-(* Check if opponent's knight is threatening king *)
-let knight_checking board (x, y) opp loc =
-  let x', y' = (x + fst loc, y + snd loc) in
-  x' >= 0 && y' >= 0 && x' <= 7 && y' <= 7
-  &&
-  let p = piece_at_pos (x', y') board in
-  get_piece_color p = opp && get_piece_type p = Knight
-
-(* Check if opponent's bishop, rook, or queen is threatening king *)
-let rec check_line board (x, y) opp dir =
-  let adjx = x + fst dir in
-  let adjy = y + snd dir in
-  if adjx < 0 || adjx > 7 || adjy < 0 || adjy > 7 then false
-  else
-    let p = piece_at_pos (adjx, adjy) board in
-    if
-      abs (fst dir) = abs (snd dir)
-      && (get_piece_type p = Bishop || get_piece_type p = Queen)
-    then get_piece_color p = opp
-    else if
-      abs (fst dir) <> abs (snd dir)
-      && (get_piece_type p = Rook || get_piece_type p = Queen)
-    then get_piece_color p = opp
-    else if get_piece_type p = Blank then check_line board (adjx, adjy) opp dir
-    else false
-
-(* Check if opponent's king placed under check *)
-let under_check board turn king_loc =
-  let opp = if turn = Black then White else Black in
-  let x, y = if turn = White then fst king_loc else snd king_loc in
-  pawn_checking board (x, y) opp
-  || knight_checking board (x, y) opp (1, 2)
-  || knight_checking board (x, y) opp (1, -2)
-  || knight_checking board (x, y) opp (-1, 2)
-  || knight_checking board (x, y) opp (-1, -2)
-  || knight_checking board (x, y) opp (2, 1)
-  || knight_checking board (x, y) opp (2, -1)
-  || knight_checking board (x, y) opp (-2, 1)
-  || knight_checking board (x, y) opp (-2, -1)
-  || check_line board (x, y) opp (1, 1)
-  || check_line board (x, y) opp (1, -1)
-  || check_line board (x, y) opp (-1, 1)
-  || check_line board (x, y) opp (-1, -1)
-  || check_line board (x, y) opp (0, 1)
-  || check_line board (x, y) opp (0, -1)
-  || check_line board (x, y) opp (1, 0)
-  || check_line board (x, y) opp (-1, 0)
-
 (* 3. Check whether a move is valid for a given piece *)
 let valid_move (board : board) (atk_piece : piece) (move : int * int)
-    (turn : color) (last_move : last_move) : bool =
+    (turn : color) (last_move : last_move) (king_moved : bool)
+    (krook_moved : bool) (qrook_moved : bool) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
   in
@@ -250,7 +278,9 @@ let valid_move (board : board) (atk_piece : piece) (move : int * int)
     | Blank -> false
     | Pawn -> check_pawn atk_piece def_piece last_move board
     | Knight -> check_knight atk_piece def_piece
-    | King -> check_king atk_piece def_piece
+    | King ->
+        check_king atk_piece def_piece turn board king_moved krook_moved
+          qrook_moved
     | Rook -> check_rook board atk_piece def_piece
     | Bishop -> check_bishop board atk_piece def_piece
     | Queen -> check_queen board atk_piece def_piece
