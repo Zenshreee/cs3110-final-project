@@ -1,7 +1,7 @@
 open Pieces
 open Moves
 
-(************************ Initialize pieces and board. ************************)
+
 
 type white_pieces = {
   king : string;
