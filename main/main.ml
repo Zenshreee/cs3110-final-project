@@ -24,10 +24,10 @@ let rec repl state : unit =
      print_string "\n\n"; let color = match state with | White -> Black | Black
      -> White | _ -> None in repl color *)
   | _ -> (
-      let b, valid = make_move move curr_board state in
+      let valid = make_move move curr_board state in
       match valid with
       | true ->
-          print_board b;
+          print_board curr_board;
           print_string "\n\n";
           let color =
             match state with
@@ -37,7 +37,7 @@ let rec repl state : unit =
           in
           repl color
       | false ->
-          print_board b;
+          print_board curr_board;
           print_string "\n\n";
           repl state)
 

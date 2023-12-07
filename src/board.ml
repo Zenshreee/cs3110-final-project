@@ -246,7 +246,7 @@ let rec ask_match_choice _ =
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 
 let make_move (move : string) (curr_game_state : piece array array)
-    (turn : color) : board * bool =
+    (turn : color) : bool =
   (* Parse the given move. *)
   let start_pos =
     try position_of_string (String.sub move 0 2)
@@ -324,7 +324,7 @@ let make_move (move : string) (curr_game_state : piece array array)
         print_endline "Under check. Try again.";
         board_set (make_piece Blank None end_pos) end_pos curr_game_state;
         board_set p start_pos curr_game_state;
-        (curr_game_state, false))
+        false)
       else (
         print_string "Valid move made\n";
         king_moved :=
@@ -362,10 +362,10 @@ let make_move (move : string) (curr_game_state : piece array array)
             (make_piece Rook turn (fst start_pos, snd end_pos + 1))
             (fst start_pos, snd end_pos + 1)
             board);
-        (curr_game_state, true)))
+        true))
     else (
       print_endline "Illegal move. Try again.";
-      (curr_game_state, false))
+      false)
   else (
     print_endline "Illegal move. Try again.";
-    (curr_game_state, false))
+    false)
