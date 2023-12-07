@@ -243,21 +243,22 @@ let rec ask_match_choice _ =
   | "rook" -> Rook
   | _ -> ask_match_choice ()
 
+let unmake_move (curr_game_state : piece array array) (turn : color)
+    (start_pos : int * int) (end_pos : int * int) : board * bool =
+  let p = piece_at_pos end_pos board in
+  board_set (make_piece Blank None end_pos) end_pos curr_game_state;
+  board_set p start_pos curr_game_state;
+  (curr_game_state, false)
+
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 
-let make_move (move : string) (curr_game_state : piece array array)
-    (turn : color) : board * bool =
-  (* Parse the given move. *)
-  let start_pos =
-    try position_of_string (String.sub move 0 2)
-    with Invalid_argument e -> (-1, -1)
-  in
+let make_move (start_pos : int * int) (end_pos : int * int)
+    (curr_game_state : piece array array) (turn : color) : board * bool =
+  (* Parse the given move. let start_pos = try position_of_string (String.sub
+     move 0 2) with Invalid_argument e -> (-1, -1) in
 
-  let end_pos =
-    try position_of_string (String.sub move 3 2)
-    with Invalid_argument e -> (-1, -1)
-  in
-
+     let end_pos = try position_of_string (String.sub move 3 2) with
+     Invalid_argument e -> (-1, -1) in *)
   if
     start_pos <> (-1, -1)
     && end_pos <> (-1, -1)

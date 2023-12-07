@@ -8,6 +8,18 @@ exception GameEnd
 
 let curr_board = board
 
+let get_position move : (int * int) * (int * int) =
+  let start_pos =
+    try position_of_string (String.sub move 0 2)
+    with Invalid_argument e -> (-1, -1)
+  in
+  let end_pos =
+    try position_of_string (String.sub move 3 2)
+    with Invalid_argument e -> (-1, -1)
+  in
+
+  (start_pos, end_pos)
+
 (* read-eval-print loop *)
 let rec repl state : unit =
   print_endline "Enter a legal move. Format: <start pos> <end pos>";
@@ -24,7 +36,8 @@ let rec repl state : unit =
      print_string "\n\n"; let color = match state with | White -> Black | Black
      -> White | _ -> None in repl color *)
   | _ -> (
-      let b, valid = make_move move curr_board state in
+      let start_pos, end_pos = get_position move in
+      let b, valid = make_move start_pos end_pos curr_board state in
       match valid with
       | true ->
           print_board b;
