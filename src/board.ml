@@ -127,6 +127,8 @@ let board =
     |];
   |]
 
+(* Initial king placement *)
+let king_loc = ref ((7, 4), (0, 4))
 let king_moved = ref (false, false)
 let krook_moved = ref (false, false)
 let qrook_moved = ref (false, false)
@@ -181,11 +183,11 @@ let print_board board =
     \   | a | b | c | d | e | f | g | h |\n"
 
 (* Helper function to print a tuple. *)
-let print_tuple (x, y) =
+let print_tuple (row, col) =
   print_string "(";
-  print_int x;
+  print_int row;
   print_string ", ";
-  print_int y;
+  print_int col;
   print_string ")"
 
 (* Sets a piece on board curr at position pos. *)
@@ -244,8 +246,7 @@ let rec ask_match_choice _ =
 (* Precondition: Input must be in chess notation. For example "e4 e5". *)
 
 let make_move (move : string) (curr_game_state : piece array array)
-    (turn : color) (king_loc : (int * int) * (int * int)) :
-    board * bool * ((int * int) * (int * int)) =
+    (turn : color) : board * bool =
   (* Parse the given move. *)
   let start_pos =
     try position_of_string (String.sub move 0 2)
@@ -303,27 +304,27 @@ let make_move (move : string) (curr_game_state : piece array array)
       end
       else update_board_and_last_move p start_pos end_pos curr_game_state;
 
-      let king_loc =
+      king_loc :=
         if get_piece_type p = King then
-          if get_piece_color p = White then (end_pos, snd king_loc)
-          else (fst king_loc, end_pos)
-        else king_loc
-      in
+          if get_piece_color p = White then (end_pos, snd !king_loc)
+          else (fst !king_loc, end_pos)
+        else !king_loc;
+
       if
         under_check curr_game_state
           (if turn = White then Black else White)
-          (if turn = White then snd king_loc else fst king_loc)
+          (if turn = White then snd !king_loc else fst !king_loc)
       then print_endline "\nCHECK";
 
       if
         under_check curr_game_state turn
-          (if turn = White then fst king_loc else snd king_loc)
+          (if turn = White then fst !king_loc else snd !king_loc)
       then (
         last_move := prev;
         print_endline "Under check. Try again.";
         board_set (make_piece Blank None end_pos) end_pos curr_game_state;
         board_set p start_pos curr_game_state;
-        (curr_game_state, false, king_loc))
+        (curr_game_state, false))
       else (
         print_string "Valid move made\n";
         king_moved :=
@@ -361,10 +362,10 @@ let make_move (move : string) (curr_game_state : piece array array)
             (make_piece Rook turn (fst start_pos, snd end_pos + 1))
             (fst start_pos, snd end_pos + 1)
             board);
-        (curr_game_state, true, king_loc)))
+        (curr_game_state, true)))
     else (
       print_endline "Illegal move. Try again.";
-      (curr_game_state, false, king_loc))
+      (curr_game_state, false))
   else (
     print_endline "Illegal move. Try again.";
-    (curr_game_state, false, king_loc))
+    (curr_game_state, false))

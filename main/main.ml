@@ -8,11 +8,8 @@ exception GameEnd
 
 let curr_board = board
 
-(* Initial king placement *)
-let king_loc = ((7, 4), (0, 4))
-
 (* read-eval-print loop *)
-let rec repl state king_loc : unit =
+let rec repl state : unit =
   print_endline "Enter a legal move. Format: <start pos> <end pos>";
   (match state with
   | White -> print_endline "White's turn"
@@ -27,7 +24,7 @@ let rec repl state king_loc : unit =
      print_string "\n\n"; let color = match state with | White -> Black | Black
      -> White | _ -> None in repl color *)
   | _ -> (
-      let b, valid, king_loc = make_move move curr_board state king_loc in
+      let b, valid = make_move move curr_board state in
       match valid with
       | true ->
           print_board b;
@@ -38,11 +35,11 @@ let rec repl state king_loc : unit =
             | Black -> White
             | _ -> None
           in
-          repl color king_loc
+          repl color
       | false ->
           print_board b;
           print_string "\n\n";
-          repl state king_loc)
+          repl state)
 
 (** black_winner is var of type [string]. It represents graphic displayed when
     black wins.*)
@@ -53,4 +50,4 @@ let () =
   print_endline "Type 'quit' to quit.";
   (* print_endline "Type 'help' for a list of commands."; *)
   print_board board;
-  repl White king_loc
+  repl White
