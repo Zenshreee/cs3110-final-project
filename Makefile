@@ -23,3 +23,8 @@ game:
 zip:
 	rm -f chess.zip
 	zip -r chess.zip . -x@exclude.lst
+doc:
+	dune build @doc
+
+opendoc: doc
+	@bash opendoc.sh

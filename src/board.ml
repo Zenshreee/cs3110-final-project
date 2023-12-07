@@ -136,7 +136,8 @@ let qrook_moved = ref (false, false)
 (**************************** End initialization. *****************************)
 
 (* Keep track of the last move made on the board. *)
-let last_move : last_move ref =
+
+let last_move  =
   ref
     {
       last_piece =

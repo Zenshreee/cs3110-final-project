@@ -3,7 +3,7 @@ open Pieces
 (* Dedup this later. Type also defined in board. *)
 type board = piece array array
 
-type last_move = {
+type last_move_type = {
   last_piece : piece;
   last_start_pos : int * int;
   last_end_pos : int * int;
@@ -150,7 +150,8 @@ let is_en_passant_move attacking_pawn last_move end_pos board =
      <> attacking_pawn.piece_color
 
 (* 2. a) check valid move for Pawn *)
-let check_pawn attacking_piece defending_piece (last_move : last_move) board =
+let check_pawn attacking_piece defending_piece (last_move : last_move_type)
+    board =
   let start_row, start_col = attacking_piece.piece_pos in
   let target_row, target_col = defending_piece.piece_pos in
   let color = attacking_piece.piece_color in
@@ -270,7 +271,7 @@ let check_queen board atk_piece def_piece =
 
 (* 3. Check whether a move is valid for a given piece *)
 let valid_move (board : board) (atk_piece : piece) (move : int * int)
-    (turn : color) (last_move : last_move) (king_moved : bool)
+    (turn : color) (last_move : last_move_type) (king_moved : bool)
     (krook_moved : bool) (qrook_moved : bool) : bool =
   let check_turn_color atk_piece turn : bool =
     if atk_piece.piece_color = turn then true else false
