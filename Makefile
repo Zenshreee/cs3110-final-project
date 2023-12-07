@@ -1,3 +1,5 @@
+.PHONY: test
+
 build:
 	dune build
 
@@ -7,6 +9,11 @@ utop:
 clean:
 	dune clean
 
+cloc:	
+	dune clean
+	cloc --by-file --include-lang=OCaml .
+	dune build
+	
 test:
 	OCAMLRUNPARAM=b dune exec test/main.exe
 	
