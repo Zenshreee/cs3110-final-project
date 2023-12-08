@@ -6,7 +6,6 @@ Here’s what we’re going to install:
 1. A Unix development environment
 2. OPAM, the OCaml Package Manager
 3. An OPAM switch with the OCaml compiler and some packages
-4. The Visual Studio Code editor, with OCaml support
 
 
 1. Unix Development Environment
@@ -97,5 +96,11 @@ Here’s what we’re going to install:
 →  __Name__      ocaml-base-compiler.5.0.0  __description__
 
     3. opam install -y utop odoc ounit2 qcheck bisect_ppx menhir ocaml-lsp-server ocamlformat ocamlformat-rpc
+
+4. Running the program
+
+First, enter the main directory and run make build to build the dune environment. Then, run make game to start the game.
+
+For the best experience, run this in a terminal with a light background (Light Mode).
 
     

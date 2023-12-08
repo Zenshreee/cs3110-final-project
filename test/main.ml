@@ -1,3 +1,41 @@
+(************************************************************
+
+   Test Plan
+
+   Automatic: 
+   Manual: Due to the difficulty with checking the board state after castling,en passant, and pawn promotion, we decided to manually test. Starting with the initial game state we played the game and attempted to castle, perform en passant, and pawn promotion under various scenarios. A few of the move configurations are in the data folder as text files for reference.
+    - Castling:
+        - Attempted to castle after king has moved
+        - Attempted castling after kingside rook moved
+        - Attempted castling after queenside rook moved
+        - Attempted castling while king under check
+        - Attempted castling when one of the squares that the king passes through is under check
+        - Proper castling
+        - Did the above with both black and white
+    - En Passant
+      - Correct en passant
+      - Attempt en passant too late
+      - Attempt en passant with pawn absent
+      - Tested above for both white and black
+    - Pawn Promotion
+      - Tested promotion to each type of allowed piece
+      - Tested promotion for piece not allowed
+      - Tested movement of promoted piece
+      - Tested pawn not allowed to promote (move to last square)
+      - Did above with both black and white
+
+   Black Box Testing: We tested check_pawn, check_knight, check_bishop, check_rook, check_queen, check_king to check valid and invalid moves for each piece. This extensive testing covered moving a piece in all possible directions, and testing the validity of the move based on other pieces on the board.
+   Glass Box Testing: We tested under_check, castling and other complex moves using glass box testing and used the control logic of the methods written to ensure good coverage. For example, checking that last_move is correct after an illegal move is attempted.
+   Randomized Testing: We did not think it would be reasonable to attempt random moves as the vast majority of moves would be illegal. Instead, we decided to randomly move manually and assess how the game state changes.
+
+   Why this demonstrates correctness:
+
+   Our program is intended to play chess following standard chess rules including castling, en passant, and pawn promotion. Each move type has a check function that checks if a given move is valid. We extensively tested this function for pawns, knights, bishops, kings, queens, and rooks. This way we can ensure that legal moves are played properly. We also check incorrect moves by determining whether our check moves function returns false. After manually testing castling, en passant, and pawn promotion from many different starting configurations we are confident.
+
+   Our program's game flow executes exactly as intended as well as demostrated by the countless games we played. Ensuring the correctness of our tests thus demonstrates the correctness of our chess program, since users are only permitted to make valid chess moves that are specified by the game rules.
+
+ ************************************************************)
+
 open OUnit2
 open Chess
 open Board
@@ -690,6 +728,299 @@ let check_king_tests =
            White board false false false) );
   ]
 
+let check_board1 =
+  [|
+    [|
+      make_piece Rook Black (0, 0);
+      make_piece Knight Black (0, 1);
+      make_piece Bishop Black (0, 2);
+      make_piece Queen Black (0, 3);
+      make_piece King Black (0, 4);
+      make_piece Bishop Black (0, 5);
+      make_piece Knight Black (0, 6);
+      make_piece Rook Black (0, 7);
+    |];
+    [|
+      make_piece Pawn Black (1, 0);
+      make_piece Pawn Black (1, 1);
+      make_piece Pawn Black (1, 2);
+      make_piece Pawn Black (1, 3);
+      make_piece Pawn Black (1, 4);
+      make_piece Pawn Black (1, 5);
+      make_piece Pawn Black (1, 6);
+      make_piece Pawn Black (1, 7);
+    |];
+    [|
+      make_piece Blank None (2, 0);
+      make_piece Blank None (2, 1);
+      make_piece Blank None (2, 2);
+      make_piece Blank None (2, 3);
+      make_piece Blank None (2, 4);
+      make_piece Blank None (2, 5);
+      make_piece Blank None (2, 6);
+      make_piece Blank None (2, 7);
+    |];
+    [|
+      make_piece Blank None (3, 0);
+      make_piece Blank None (3, 1);
+      make_piece Blank None (3, 2);
+      make_piece Blank None (3, 3);
+      make_piece Blank None (3, 4);
+      make_piece Blank None (3, 5);
+      make_piece Blank None (3, 6);
+      make_piece Blank None (3, 7);
+    |];
+    [|
+      make_piece Blank None (4, 0);
+      make_piece Blank None (4, 1);
+      make_piece Blank None (4, 2);
+      make_piece Blank None (4, 3);
+      make_piece Blank None (4, 4);
+      make_piece Blank None (4, 5);
+      make_piece Blank None (4, 6);
+      make_piece Blank None (4, 7);
+    |];
+    [|
+      make_piece Blank None (5, 0);
+      make_piece Blank None (5, 1);
+      make_piece Blank None (5, 2);
+      make_piece Blank None (5, 3);
+      make_piece Blank None (5, 4);
+      make_piece Blank None (5, 5);
+      make_piece Blank None (5, 6);
+      make_piece Blank None (5, 7);
+    |];
+    [|
+      make_piece Pawn White (6, 0);
+      make_piece Pawn White (6, 1);
+      make_piece Pawn White (6, 2);
+      make_piece Pawn White (6, 3);
+      make_piece Pawn White (6, 4);
+      make_piece Pawn White (6, 5);
+      make_piece Pawn White (6, 6);
+      make_piece Pawn White (6, 7);
+    |];
+    [|
+      make_piece Rook White (7, 0);
+      make_piece Knight White (7, 1);
+      make_piece Bishop White (7, 2);
+      make_piece Queen White (7, 3);
+      make_piece King White (7, 4);
+      make_piece Bishop White (7, 5);
+      make_piece Knight White (7, 6);
+      make_piece Rook White (7, 7);
+    |];
+  |]
+
+let _ = make_move "b1 c3" check_board1 White
+let _ = make_move "h7 h6" check_board1 Black
+let _ = make_move "c3 b5" check_board1 White
+let _ = make_move "h6 h5" check_board1 Black
+let _ = make_move "b5 c7" check_board1 White
+
+let check_board2 =
+  [|
+    [|
+      make_piece Rook Black (0, 0);
+      make_piece Knight Black (0, 1);
+      make_piece Bishop Black (0, 2);
+      make_piece Queen Black (0, 3);
+      make_piece King Black (0, 4);
+      make_piece Bishop Black (0, 5);
+      make_piece Knight Black (0, 6);
+      make_piece Rook Black (0, 7);
+    |];
+    [|
+      make_piece Pawn Black (1, 0);
+      make_piece Pawn Black (1, 1);
+      make_piece Pawn Black (1, 2);
+      make_piece Pawn Black (1, 3);
+      make_piece Pawn Black (1, 4);
+      make_piece Pawn Black (1, 5);
+      make_piece Pawn Black (1, 6);
+      make_piece Pawn Black (1, 7);
+    |];
+    [|
+      make_piece Blank None (2, 0);
+      make_piece Blank None (2, 1);
+      make_piece Blank None (2, 2);
+      make_piece Blank None (2, 3);
+      make_piece Blank None (2, 4);
+      make_piece Blank None (2, 5);
+      make_piece Blank None (2, 6);
+      make_piece Blank None (2, 7);
+    |];
+    [|
+      make_piece Blank None (3, 0);
+      make_piece Blank None (3, 1);
+      make_piece Blank None (3, 2);
+      make_piece Blank None (3, 3);
+      make_piece Blank None (3, 4);
+      make_piece Blank None (3, 5);
+      make_piece Blank None (3, 6);
+      make_piece Blank None (3, 7);
+    |];
+    [|
+      make_piece Blank None (4, 0);
+      make_piece Blank None (4, 1);
+      make_piece Blank None (4, 2);
+      make_piece Blank None (4, 3);
+      make_piece Blank None (4, 4);
+      make_piece Blank None (4, 5);
+      make_piece Blank None (4, 6);
+      make_piece Blank None (4, 7);
+    |];
+    [|
+      make_piece Blank None (5, 0);
+      make_piece Blank None (5, 1);
+      make_piece Blank None (5, 2);
+      make_piece Blank None (5, 3);
+      make_piece Blank None (5, 4);
+      make_piece Blank None (5, 5);
+      make_piece Blank None (5, 6);
+      make_piece Blank None (5, 7);
+    |];
+    [|
+      make_piece Pawn White (6, 0);
+      make_piece Pawn White (6, 1);
+      make_piece Pawn White (6, 2);
+      make_piece Pawn White (6, 3);
+      make_piece Pawn White (6, 4);
+      make_piece Pawn White (6, 5);
+      make_piece Pawn White (6, 6);
+      make_piece Pawn White (6, 7);
+    |];
+    [|
+      make_piece Rook White (7, 0);
+      make_piece Knight White (7, 1);
+      make_piece Bishop White (7, 2);
+      make_piece Queen White (7, 3);
+      make_piece King White (7, 4);
+      make_piece Bishop White (7, 5);
+      make_piece Knight White (7, 6);
+      make_piece Rook White (7, 7);
+    |];
+  |]
+
+let _ = make_move "a2 a4" check_board2 White
+let _ = make_move "h7 h6" check_board2 Black
+let _ = make_move "a1 a3" check_board2 White
+let _ = make_move "h6 h5" check_board2 Black
+let _ = make_move "a3 b3" check_board2 White
+let _ = make_move "h5 h4" check_board2 Black
+let _ = make_move "b3 b7" check_board2 White
+let _ = make_move "h4 h3" check_board2 Black
+let _ = make_move "b7 b8" check_board2 White
+let _ = make_move "h3 g2" check_board2 Black
+let _ = make_move "b8 c8" check_board2 White
+let _ = make_move "g7 g6" check_board2 Black
+let _ = make_move "c8 d8" check_board2 White
+
+let check_board3 =
+  [|
+    [|
+      make_piece Rook Black (0, 0);
+      make_piece Knight Black (0, 1);
+      make_piece Bishop Black (0, 2);
+      make_piece Queen Black (0, 3);
+      make_piece King Black (0, 4);
+      make_piece Bishop Black (0, 5);
+      make_piece Knight Black (0, 6);
+      make_piece Rook Black (0, 7);
+    |];
+    [|
+      make_piece Pawn Black (1, 0);
+      make_piece Pawn Black (1, 1);
+      make_piece Pawn Black (1, 2);
+      make_piece Pawn Black (1, 3);
+      make_piece Pawn Black (1, 4);
+      make_piece Pawn Black (1, 5);
+      make_piece Pawn Black (1, 6);
+      make_piece Pawn Black (1, 7);
+    |];
+    [|
+      make_piece Blank None (2, 0);
+      make_piece Blank None (2, 1);
+      make_piece Blank None (2, 2);
+      make_piece Blank None (2, 3);
+      make_piece Blank None (2, 4);
+      make_piece Blank None (2, 5);
+      make_piece Blank None (2, 6);
+      make_piece Blank None (2, 7);
+    |];
+    [|
+      make_piece Blank None (3, 0);
+      make_piece Blank None (3, 1);
+      make_piece Blank None (3, 2);
+      make_piece Blank None (3, 3);
+      make_piece Blank None (3, 4);
+      make_piece Blank None (3, 5);
+      make_piece Blank None (3, 6);
+      make_piece Blank None (3, 7);
+    |];
+    [|
+      make_piece Blank None (4, 0);
+      make_piece Blank None (4, 1);
+      make_piece Blank None (4, 2);
+      make_piece Blank None (4, 3);
+      make_piece Blank None (4, 4);
+      make_piece Blank None (4, 5);
+      make_piece Blank None (4, 6);
+      make_piece Blank None (4, 7);
+    |];
+    [|
+      make_piece Blank None (5, 0);
+      make_piece Blank None (5, 1);
+      make_piece Blank None (5, 2);
+      make_piece Blank None (5, 3);
+      make_piece Blank None (5, 4);
+      make_piece Blank None (5, 5);
+      make_piece Blank None (5, 6);
+      make_piece Blank None (5, 7);
+    |];
+    [|
+      make_piece Pawn White (6, 0);
+      make_piece Pawn White (6, 1);
+      make_piece Pawn White (6, 2);
+      make_piece Pawn White (6, 3);
+      make_piece Pawn White (6, 4);
+      make_piece Pawn White (6, 5);
+      make_piece Pawn White (6, 6);
+      make_piece Pawn White (6, 7);
+    |];
+    [|
+      make_piece Rook White (7, 0);
+      make_piece Knight White (7, 1);
+      make_piece Bishop White (7, 2);
+      make_piece Queen White (7, 3);
+      make_piece King White (7, 4);
+      make_piece Bishop White (7, 5);
+      make_piece Knight White (7, 6);
+      make_piece Rook White (7, 7);
+    |];
+  |]
+
+let _ = make_move "a2 a4" check_board3 White
+let _ = make_move "h7 h6" check_board3 Black
+let _ = make_move "a4 a5" check_board3 White
+let _ = make_move "h6 h5" check_board3 Black
+let _ = make_move "c2 c3" check_board3 White
+let _ = make_move "d7 d6" check_board3 Black
+let _ = make_move "d1 a4" check_board3 White
+let _ = make_move "h5 h4" check_board3 Black
+let _ = make_move "b7 b5" check_board3 Black
+let _ = make_move "a5 b6" check_board3 White
+
+let check_tests =
+  [
+    ( "check black" >:: fun _ ->
+      assert_equal true (under_check check_board1 Black (0, 4)) );
+    ( "check black 2" >:: fun _ ->
+      assert_equal true (under_check check_board2 Black (0, 4)) );
+    ( "check black 3" >:: fun _ ->
+      assert_equal true (under_check check_board3 Black (0, 4)) );
+  ]
+
 let tests =
   "chess test suite"
   >::: List.flatten
@@ -700,6 +1031,7 @@ let tests =
            check_rook_tests;
            check_queen_tests;
            check_king_tests;
+           check_tests;
          ]
 
 let _ = run_test_tt_main tests

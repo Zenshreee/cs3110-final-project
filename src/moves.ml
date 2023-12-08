@@ -1,6 +1,5 @@
 open Pieces
 
-(* Dedup this later. Type also defined in board. *)
 type board = piece array array
 
 type last_move_type = {
@@ -118,8 +117,8 @@ let under_check board turn king_loc =
   || check_line board (row, col) opp (1, 0)
   || check_line board (row, col) opp (-1, 0)
 
-(* Helper function to determine if path is clear for linear movements (used for
-   bishop and rook). *)
+(* Helper function to determine if path is clear for linear movements. Used for
+   bishop and rook valid path checks. *)
 let rec check_path (board : board) (step : int * int) (current_pos : int * int)
     (end_pos : int * int) atk_piece_color =
   let next_Row, next_Col =
@@ -150,8 +149,8 @@ let is_en_passant_move attacking_pawn last_move end_pos board =
      <> attacking_pawn.piece_color
 
 (* 2. a) check valid move for Pawn *)
-let check_pawn attacking_piece defending_piece (last_move : last_move_type)
-    board =
+let check_pawn attacking_piece defending_piece
+    (last_move : last_move_type) board =
   let start_row, start_col = attacking_piece.piece_pos in
   let target_row, target_col = defending_piece.piece_pos in
   let color = attacking_piece.piece_color in

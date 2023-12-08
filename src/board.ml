@@ -1,8 +1,6 @@
 open Pieces
 open Moves
 
-
-
 type white_pieces = {
   king : string;
   queen : string;
@@ -137,14 +135,9 @@ let qrook_moved = ref (false, false)
 
 (* Keep track of the last move made on the board. *)
 
-let last_move  =
-  ref
-    {
-      last_piece =
-        { piece_type = Blank; piece_color = White; piece_pos = (0, 0) };
-      last_start_pos = (0, 0);
-      last_end_pos = (0, 0);
-    }
+let last_move : last_move_type ref =
+  let p = { piece_type = Blank; piece_color = White; piece_pos = (0, 0) } in
+  ref { last_piece = p; last_start_pos = (0, 0); last_end_pos = (0, 0) }
 
 (* Helper function to print the board. *)
 let print_board board =

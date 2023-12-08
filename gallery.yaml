@@ -1,5 +1,4 @@
 ---
-# Members of your group.
 group:
   - name: Shreehari Srinivasna
     netid: ss2732
@@ -9,18 +8,18 @@ group:
     netid: sg2455
   - name: Meer Singh Bhai
     netid: msb357
-# Your PM.
+
 pm:
   name: Amy Wu
   netid: aw628
-# Set to false if you don't want your gallery entry to be public.
-publish: true
-# Pithy title
+
+publish: false
+
 title: "Chessculators"
-# OK if this is a Cornell Github link, but public gallery viewers won't be able to see it.
+
 git-repo: "https://github.com/Zenshreee/cs3110-final-project"
-# If you have no demo screencast, replace the url string with an empty string ""
+
 demo-video-url: ""
-# Write a short, attention-grabbing description of your project.
+
 desc: >
-  A standard game of chess that is playable through the terminal. The interface is drawn using ASCII characters and they can enter the move using standard chess notation. A player can choose to play as white, black, or random. We will use trees and probability to mathematically determine the best move by searching possible combinations up to a certain depth. We may also have a second mode for the game where the user can play against another user possibly across different devices.
+  A standard game of chess that is playable through the terminal. The interface is displayed using ASCII characters and players can enter the move using standard chess notation. A player can choose to play as white, black, or random. The game ends when one player quits or when a player falls under checkmate!

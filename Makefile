@@ -4,18 +4,15 @@ build:
 	dune build
 
 utop:
-	OCAMLRUNPARAM=b dune utop lib
+	OCAMLRUNPARAM=b dune utop src
 
-clean:
-	dune clean
+test:
+	OCAMLRUNPARAM=b dune exec test/main.exe
 
 cloc:	
 	dune clean
 	cloc --by-file --include-lang=OCaml .
 	dune build
-	
-test:
-	OCAMLRUNPARAM=b dune exec test/main.exe
 	
 game:
 	OCAMLRUNPARAM=b dune exec main/main.exe
@@ -23,6 +20,10 @@ game:
 zip:
 	rm -f chess.zip
 	zip -r chess.zip . -x@exclude.lst
+
+clean:
+	dune clean
+
 doc:
 	dune build @doc
 
